@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.env
+.env.*
+!.env.example
+.DS_Store
+dist/
+build/
+*.egg-info/
+# Future local evidence, logs and generated incident reports are private by default.
+var/
+*.log
