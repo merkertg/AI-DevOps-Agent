@@ -62,13 +62,18 @@
     }
   },
   "publication": {
-    "status": "pending",
+    "status": "pushed",
     "branch": "main",
-    "remote_base_verified": "006814afff266b2567276edd92a56ac50bdef5d5"
+    "commit_sha": "67dbc303333419fa66235662da82f486754e6d10",
+    "remote_sha_verified": "67dbc303333419fa66235662da82f486754e6d10",
+    "method": "git push origin main followed by git ls-remote origin refs/heads/main",
+    "remote_base_verified": "006814afff266b2567276edd92a56ac50bdef5d5",
+    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 02 implementation."
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "No hosted workflow result observed for the Stage 02 commit; connector returned 404 for the base commit."
+    "checked_commit": "67dbc303333419fa66235662da82f486754e6d10",
+    "reason": "GitHub connector returned 404 for this commit status request; no hosted workflow result was observed."
   },
   "limitations": [
     "Inputs are fictional structured Python objects; file ingestion, limits, redaction and CLI reporting are planned for Stage 03.",
