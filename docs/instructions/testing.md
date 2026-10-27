@@ -11,6 +11,7 @@ Run from the repository root:
 
 ```bash
 uv sync --locked
+uv lock --check --offline
 uv run --locked ruff check .
 uv run --locked ruff format --check .
 uv run --locked mypy app tests scripts
@@ -32,6 +33,12 @@ routes, configuration validation and precedence, cached loading and independent
 application instances. The
 [FastAPI testing guide](https://fastapi.tiangolo.com/tutorial/testing/) explains
 the `TestClient` approach.
+
+Stage 02 tests also construct fictional incidents directly in Python: aware
+timestamps, inclusive scope, ordering, source and evidence references, explicit
+error signals, conflicting exit codes, immutable results and inert log text.
+They do not parse external log formats or validate a live collector. Run the
+domain subset with `uv run --locked pytest tests/test_domain.py`.
 
 Ruff checks common errors and imports; its format check does not modify files.
 Strict mypy checks annotated Python types. Pytest verifies behavior. The local

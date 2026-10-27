@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stage 01
+## Current implementation: Stages 01–02
 
 Stage 01 contains a small FastAPI application:
 
@@ -34,11 +34,37 @@ health handler. The response contains only `status` and `service`.
 application, telemetry source or model is healthy. These integrations do not
 exist at this stage.
 
+Stage 02 adds a separate standard-library domain:
+
+```text
+Incident + Source + Observation
+               ↓
+         investigate()
+               ↓
+Investigation: timeline + facts + hypotheses + contradictions
+```
+
+Frozen dataclasses validate identifiers, aware timestamps, source types and exit
+codes. Incident scope is one service and an inclusive event-time interval.
+Timestamps normalize to UTC; collection may follow the incident window but must
+not precede its event. The domain rejects duplicate identifiers, unknown sources,
+out-of-scope observations and unresolved evidence references. Canonical ordering
+makes the result independent of input order.
+
+Rules use structured observation kinds rather than log prose. They record an
+explicit connection refusal or nonzero container exit as a fact and keep causal
+explanations as unconfirmed hypotheses. Conflicting exit codes for the same
+source and event instant are retained and reported; their causal hypothesis is
+suppressed. An empty timeline is valid and establishes no cause. File parsing,
+normalization and redaction belong to Stage 03. The
+[Stage 02 guide](STAGE_02.md) describes the current contracts and limits.
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
 | --- | --- | --- |
 | Python 3.12, uv, `uv.lock` | Runtime and reproducible environment | Implemented |
+| Standard-library dataclasses, enums and datetime | Immutable incident scope, timeline and evidence-linked rules | Implemented, Stage 02 |
 | FastAPI, Uvicorn | HTTP API and ASGI server | Implemented |
 | Pydantic, pydantic-settings | Response contract and settings validation | Implemented |
 | pytest, Ruff, mypy | Behavior, style and strict type checks | Implemented |
@@ -55,7 +81,7 @@ implementation, rather than installed in anticipation.
 
 Grow a modular monolith as behavior appears:
 
-| Layer | Planned responsibility | Added from |
+| Layer | Responsibility | Added from |
 | --- | --- | --- |
 | Domain | Incident scope, evidence references, timeline and deterministic findings | Stage 02 |
 | Application | Investigation use cases, input/output ports and report generation | Stage 03 |
@@ -63,17 +89,19 @@ Grow a modular monolith as behavior appears:
 | Agent orchestration | Bounded LangGraph investigation over application tools | Stage 06 |
 | API | Validated requests and reports exposed through application use cases | Stage 08 |
 
-Domain code will depend on ordinary Python types rather than FastAPI, Docker,
+Domain code depends on ordinary Python types rather than FastAPI, Docker,
 GitPython, LangGraph or storage frameworks. Adapters translate external data into
 that domain. Future directories are not created as empty placeholders; see
 [project structure](instructions/project-structure.md#planned-responsibilities).
 
 ## Evidence and model boundaries
 
-Each observation will retain its source, observation time, collection window and
-stable evidence reference. Findings must be reproducible from the same normalized
-input. Reports will distinguish event time from collection time and state when
-data is missing, stale or truncated.
+Each observation retains its source identifier, event time and received time.
+Every fact, hypothesis and contradiction links back to existing observations.
+Stage 02 validates reference resolution, not semantic truth: a known reference
+alone does not establish that an arbitrary external claim follows from it.
+Normalized bounded input and reporting missing, stale or truncated collection
+data are later-stage responsibilities.
 
 Before external collection, input limits and redaction will bound size, time
 range and output volume. Secrets and personal data in logs must be considered
@@ -116,7 +144,6 @@ and the detailed [CI/CD guide](CI_CD.md).
 
 ## Next steps
 
-Stage 02 adds pure Python models for an incident, its sources, observations and
-evidence references, with a reproducible timeline and deterministic findings on
-fictional data. The [roadmap](ROADMAP.md) lists the following stages and their
-completion criteria.
+Stage 03 adds bounded local input, normalization, redaction and an offline CLI
+report over the existing domain. The [roadmap](ROADMAP.md) lists the following
+stages and their completion criteria.

@@ -1,7 +1,8 @@
 {
   "checked_on": "2026-10-27",
-  "stage": "01",
-  "scope": "Stage 01 documentation alignment with AI Support Agent; application behavior unchanged",
+  "stage": "02",
+  "scope": "Pure Python incident domain, deterministic evidence timeline, facts, hypotheses and contradictions",
+  "base_commit": "006814afff266b2567276edd92a56ac50bdef5d5",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
@@ -10,56 +11,135 @@
   "local_checks": {
     "locked_sync": "passed",
     "lock_check_offline": "passed",
+    "dependencies_changed": false,
     "ruff_check": "passed",
-    "ruff_format": "passed",
+    "ruff_format": {
+      "status": "passed",
+      "formatted_files": 28
+    },
     "mypy": {
       "status": "passed",
-      "source_files": 7
+      "source_files": 11
     },
     "pytest": {
       "status": "passed",
-      "passed": 32,
-      "skipped": 0
+      "passed": 94,
+      "skipped": 0,
+      "domain_cases": 62,
+      "foundation_cases": 32
+    },
+    "stdlib_only_domain": {
+      "status": "passed",
+      "method": "Subprocess Python -I -S imports domain and runs empty investigation without site packages"
+    },
+    "stage_02_documented_example": {
+      "status": "passed",
+      "timeline": [
+        "obs-refusal",
+        "obs-exit"
+      ],
+      "facts": 2,
+      "hypotheses": 2,
+      "contradictions": 0,
+      "equal_after_reordering": true
     },
     "documentation_links": {
       "status": "passed",
-      "links": 115,
-      "markdown_files": 15
-    },
-    "git_diff_check": "passed",
-    "uvicorn_http_smoke": {
-      "status": "passed",
-      "host": "127.0.0.1",
-      "port": "temporary free port",
-      "responses": {
-        "/health": 200,
-        "/docs": 200,
-        "/redoc": 200,
-        "/openapi.json": 200,
-        "/": 404,
-        "/incidents": 404,
-        "POST /health": 405
-      },
-      "process_stopped": true
+      "links": 138,
+      "markdown_files": 17
     },
     "documentation_anchors": {
       "status": "passed",
-      "command": "../amoCRM/.venv/bin/python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 120,
-      "markdown_files": 15,
+      "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+      "local_links": 143,
+      "markdown_files": 17,
       "broken_links": 0
+    },
+    "git_diff_check": "passed",
+    "uvicorn_http_smoke": {
+      "status": "not_run",
+      "reason": "No HTTP behavior changed in Stage 02; foundation HTTP contracts passed in-process. Earlier real HTTP checks remain historical."
     }
+  },
+  "publication": {
+    "status": "pending",
+    "branch": "main",
+    "remote_base_verified": "006814afff266b2567276edd92a56ac50bdef5d5"
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "No hosted workflow result has been observed for the final documentation commit."
+    "reason": "No hosted workflow result observed for the Stage 02 commit; connector returned 404 for the base commit."
   },
   "limitations": [
-    "Health is liveness only.",
-    "Incident analysis, collectors, persistence and AI are planned."
+    "Inputs are fictional structured Python objects; file ingestion, limits, redaction and CLI reporting are planned for Stage 03.",
+    "Only contradictory exit codes from the same source at the same event instant are detected.",
+    "Reference resolution does not prove semantic truth of arbitrary external statements.",
+    "No investigation HTTP API, live Docker, storage, Git history, model, agent or telemetry integration.",
+    "Health remains liveness only."
   ],
-  "base_commit": "583c353bf53927748eb52793efd6b299665331d5",
   "previous_checks": [
+    {
+      "checked_on": "2026-10-27",
+      "stage": "01",
+      "scope": "Stage 01 documentation alignment with AI Support Agent; application behavior unchanged",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23"
+      },
+      "local_checks": {
+        "locked_sync": "passed",
+        "lock_check_offline": "passed",
+        "ruff_check": "passed",
+        "ruff_format": "passed",
+        "mypy": {
+          "status": "passed",
+          "source_files": 7
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 32,
+          "skipped": 0
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 115,
+          "markdown_files": 15
+        },
+        "git_diff_check": "passed",
+        "uvicorn_http_smoke": {
+          "status": "passed",
+          "host": "127.0.0.1",
+          "port": "temporary free port",
+          "responses": {
+            "/health": 200,
+            "/docs": 200,
+            "/redoc": 200,
+            "/openapi.json": 200,
+            "/": 404,
+            "/incidents": 404,
+            "POST /health": 405
+          },
+          "process_stopped": true
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "../amoCRM/.venv/bin/python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 120,
+          "markdown_files": 15,
+          "broken_links": 0
+        }
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "reason": "No hosted workflow result has been observed for the final documentation commit."
+      },
+      "limitations": [
+        "Health is liveness only.",
+        "Incident analysis, collectors, persistence and AI are planned."
+      ],
+      "base_commit": "583c353bf53927748eb52793efd6b299665331d5"
+    },
     {
       "checked_on": "2026-10-23",
       "stage": "01",

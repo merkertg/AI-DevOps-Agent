@@ -11,10 +11,12 @@ app/
   __init__.py            # Application version 0.1.0
   config.py              # Validated Settings and cached get_settings()
   main.py                # HealthResponse, create_app(), liveness handler and exported app
+  domain/                # Pure Python incident models, evidence, timeline and rules
 tests/
   conftest.py            # Clean APP_* environment, temporary working directory, fresh client
   test_config.py         # Defaults, validation, source precedence and settings cache
   test_health.py         # Health JSON, OpenAPI, methods, unknown routes, app instances
+  test_domain*.py        # Domain validation, deterministic rules, evidence and contradictions
 scripts/
   check_docs.py          # Local Markdown link targets; external URLs are not requested
 docs/
@@ -22,6 +24,7 @@ docs/
   guide/                 # Learning materials index and machine-readable verification
   adr/                   # Recorded architecture decisions
   STAGE_01.md            # FastAPI foundation learning guide in Russian
+  STAGE_02.md            # Incident domain and evidence learning guide in Russian
   ROADMAP.md             # Planned stages and completion criteria in Russian
   CI_CD.md               # CI and stage publication guide in Russian
   APPROACH.md            # Current design, boundaries and planned architecture
@@ -39,13 +42,16 @@ README.md                # Short description, roadmap and documentation index
 The request path is `client → Uvicorn → FastAPI → health → HealthResponse → JSON`.
 Application instances receive their settings through `create_app()`.
 
+The separate Python domain path is `Incident + Source + Observation →
+investigate() → Investigation`. The domain uses the standard library and does
+not import the web app or read configuration. See [incident domain](incident-domain.md).
+
 ## Planned responsibilities
 
 Create new layers only when they own behavior:
 
 | Future location | First responsibility |
 | --- | --- |
-| `app/domain/` | Incidents, evidence, timeline and deterministic findings |
 | `app/application/` | Investigation use cases and ports |
 | `app/infrastructure/` | Bounded input, Docker, storage, Git and model adapters |
 | Lab configuration | A disposable Docker application and controlled incidents |
