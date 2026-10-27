@@ -1,8 +1,8 @@
-# Approach
+# AI DevOps Agent — Solution Approach
 
-[README](../README.md) · [Roadmap](ROADMAP.md) · [Architecture decision](adr/0001-staged-read-only-incident-investigation.md)
+[← README](../README.md) · [Roadmap](ROADMAP.md) · [Architecture decision](adr/0001-staged-read-only-incident-investigation.md)
 
-## Product scenario
+## Problem and product goal
 
 An engineer investigates one fictional incident affecting a small Docker
 application. The eventual system will combine logs, container observations,
@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Implemented foundation
+## Current implementation: Stage 01
 
 Stage 01 contains a small FastAPI application:
 
@@ -32,9 +32,26 @@ health handler. The response contains only `status` and `service`.
 
 `GET /health` is liveness only. It does not claim that a Docker host, investigated
 application, telemetry source or model is healthy. These integrations do not
-exist at this stage. Tests use in-process clients and isolated settings.
+exist at this stage.
 
-## Planned architecture
+## Stack and responsibility
+
+| Component | Responsibility | Status |
+| --- | --- | --- |
+| Python 3.12, uv, `uv.lock` | Runtime and reproducible environment | Implemented |
+| FastAPI, Uvicorn | HTTP API and ASGI server | Implemented |
+| Pydantic, pydantic-settings | Response contract and settings validation | Implemented |
+| pytest, Ruff, mypy | Behavior, style and strict type checks | Implemented |
+| GitHub Actions | Continuous integration | Configured; remote result in [verification](VERIFICATION.md) |
+| Docker | Disposable lab and restricted collector | Planned, Stage 04 |
+| GitPython | Read-only deployment history | Planned, Stage 05 |
+| LangGraph | Bounded investigation orchestration | Planned, Stage 06 |
+| Prometheus, OpenTelemetry | Telemetry correlation | Planned, Stage 07 |
+
+Runtime dependencies for later stages are introduced with the corresponding
+implementation, rather than installed in anticipation.
+
+## Architecture
 
 Grow a modular monolith as behavior appears:
 
@@ -48,7 +65,8 @@ Grow a modular monolith as behavior appears:
 
 Domain code will depend on ordinary Python types rather than FastAPI, Docker,
 GitPython, LangGraph or storage frameworks. Adapters translate external data into
-that domain. Future directories are not created as empty placeholders.
+that domain. Future directories are not created as empty placeholders; see
+[project structure](instructions/project-structure.md#planned-responsibilities).
 
 ## Evidence and model boundaries
 
@@ -77,15 +95,28 @@ socket. The adapter design must address the daemon access it actually receives;
 the [Docker Engine API](https://docs.docker.com/reference/api/engine/) exposes the
 underlying daemon operations.
 
-## Learning and delivery
+## Verification and isolation
+
+Tests use in-process clients, a temporary working directory and a cleaned
+`APP_*` environment, so a developer's `.env`, network services and credentials
+cannot change their result. Python 3.12, uv and `uv.lock` make the foundation
+reproducible. `--locked` makes uv fail when project metadata requires a lock
+change instead of updating it silently; see
+[uv locking and syncing](https://docs.astral.sh/uv/concepts/projects/sync/).
+Commands are listed in [testing](instructions/testing.md).
+
+## CI and stage delivery
 
 Every stage needs a working result, meaningful checks, a Russian walkthrough,
 updated usage instructions and factual verification. The stage is then committed
 and pushed, as requested for this project. Check the remote ref and the CI result
 for that commit separately. A failed push or pending CI is recorded explicitly.
+The procedure is in [CI and stage publication](instructions/ci-and-delivery.md)
+and the detailed [CI/CD guide](CI_CD.md).
 
-Python 3.12, uv and `uv.lock` make the foundation reproducible. `--locked` makes
-uv fail when project metadata requires a lock change instead of updating it
-silently; see [uv locking and syncing](https://docs.astral.sh/uv/concepts/projects/sync/).
-Runtime dependencies for later stages are introduced with the corresponding
-implementation, rather than installed in anticipation.
+## Next steps
+
+Stage 02 adds pure Python models for an incident, its sources, observations and
+evidence references, with a reproducible timeline and deterministic findings on
+fictional data. The [roadmap](ROADMAP.md) lists the following stages and their
+completion criteria.

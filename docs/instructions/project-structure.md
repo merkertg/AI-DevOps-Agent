@@ -1,31 +1,40 @@
 # Project structure
 
-[README](../../README.md) · [Detailed explanation](../STAGE_01.md)
+[← README](../../README.md) · [All documentation](../../README.md#documentation)
 
-## Implemented in Stage 01
+Where each part of the application, tests and documentation lives.
 
-| Location | Responsibility |
-| --- | --- |
-| `app/__init__.py` | Application version `0.1.0` |
-| `app/config.py` | Validated `Settings` and cached `get_settings()` |
-| `app/main.py` | `HealthResponse`, `create_app()`, liveness handler and exported `app` |
-| `tests/` | Isolated behavior checks for the implemented foundation |
-| `scripts/check_docs.py` | Local Markdown target validation |
-| `pyproject.toml` | Project metadata, dependency constraints and tool configuration |
-| `uv.lock` | Resolved dependency versions |
-| `.python-version` | Python 3.12 selection |
-| `.env.example` | Non-secret configuration example |
-| `.github/workflows/ci.yml` | Automated checks for the project |
-| `AGENTS.md` | Rules for future changes |
-| `README.md` | Entry point, current scope and commands |
-| `docs/STAGE_01.md` | Detailed Russian learning guide |
-| `docs/ROADMAP.md` | Planned stages and completion criteria |
-| `docs/APPROACH.md`, `docs/adr/` | Design principles and recorded decisions |
-| `docs/instructions/` | Short English operating instructions |
-| `docs/CI_CD.md` | CI and the per-stage commit/push procedure |
-| `docs/DEVELOPMENT_LOG.md` | Actual changes |
-| `docs/VERIFICATION.md`, `docs/guide/verification.json` | Factual checks and limitations |
-| `docs/guide/README.md` | Learning material index |
+```text
+.github/workflows/
+  ci.yml                 # Lint, formatting, strict types, tests and documentation links
+app/
+  __init__.py            # Application version 0.1.0
+  config.py              # Validated Settings and cached get_settings()
+  main.py                # HealthResponse, create_app(), liveness handler and exported app
+tests/
+  conftest.py            # Clean APP_* environment, temporary working directory, fresh client
+  test_config.py         # Defaults, validation, source precedence and settings cache
+  test_health.py         # Health JSON, OpenAPI, methods, unknown routes, app instances
+scripts/
+  check_docs.py          # Local Markdown link targets; external URLs are not requested
+docs/
+  instructions/          # Quickstart, API usage, testing, CI and stage publication, this file
+  guide/                 # Learning materials index and machine-readable verification
+  adr/                   # Recorded architecture decisions
+  STAGE_01.md            # FastAPI foundation learning guide in Russian
+  ROADMAP.md             # Planned stages and completion criteria in Russian
+  CI_CD.md               # CI and stage publication guide in Russian
+  APPROACH.md            # Current design, boundaries and planned architecture
+  VERIFICATION.md        # Checks actually run and their limits
+  DEVELOPMENT_LOG.md     # Step-by-step implementation log
+.env.example             # Non-secret configuration example
+.gitignore               # Local environments, caches, .env and future private evidence
+.python-version          # Python 3.12 selection
+AGENTS.md                # Rules for future changes
+pyproject.toml           # Metadata, dependency constraints and tool settings
+uv.lock                  # Resolved dependency versions
+README.md                # Short description, roadmap and documentation index
+```
 
 The request path is `client → Uvicorn → FastAPI → health → HealthResponse → JSON`.
 Application instances receive their settings through `create_app()`.

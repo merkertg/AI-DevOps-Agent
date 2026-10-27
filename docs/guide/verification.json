@@ -1,7 +1,7 @@
 {
-  "checked_on": "2026-10-23",
+  "checked_on": "2026-10-27",
   "stage": "01",
-  "scope": "FastAPI foundation and liveness only",
+  "scope": "Stage 01 documentation alignment with AI Support Agent; application behavior unchanged",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
@@ -12,9 +12,20 @@
     "lock_check_offline": "passed",
     "ruff_check": "passed",
     "ruff_format": "passed",
-    "mypy": {"status": "passed", "source_files": 7},
-    "pytest": {"status": "passed", "passed": 32, "skipped": 0},
-    "documentation_links": {"status": "passed", "links": 70, "markdown_files": 14},
+    "mypy": {
+      "status": "passed",
+      "source_files": 7
+    },
+    "pytest": {
+      "status": "passed",
+      "passed": 32,
+      "skipped": 0
+    },
+    "documentation_links": {
+      "status": "passed",
+      "links": 115,
+      "markdown_files": 15
+    },
     "git_diff_check": "passed",
     "uvicorn_http_smoke": {
       "status": "passed",
@@ -26,18 +37,82 @@
         "/redoc": 200,
         "/openapi.json": 200,
         "/": 404,
-        "/incidents": 404
+        "/incidents": 404,
+        "POST /health": 405
       },
       "process_stopped": true
+    },
+    "documentation_anchors": {
+      "status": "passed",
+      "command": "../amoCRM/.venv/bin/python ../amoCRM/scripts/check_docs.py --root .",
+      "local_links": 120,
+      "markdown_files": 15,
+      "broken_links": 0
     }
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "The GitHub connector and REST API returned 404; no workflow result was available.",
-    "action_tag_shas_verified": true
+    "reason": "No hosted workflow result has been observed for the final documentation commit."
   },
   "limitations": [
     "Health is liveness only.",
     "Incident analysis, collectors, persistence and AI are planned."
+  ],
+  "base_commit": "583c353bf53927748eb52793efd6b299665331d5",
+  "previous_checks": [
+    {
+      "checked_on": "2026-10-23",
+      "stage": "01",
+      "scope": "FastAPI foundation and liveness only",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23"
+      },
+      "local_checks": {
+        "locked_sync": "passed",
+        "lock_check_offline": "passed",
+        "ruff_check": "passed",
+        "ruff_format": "passed",
+        "mypy": {
+          "status": "passed",
+          "source_files": 7
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 32,
+          "skipped": 0
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 70,
+          "markdown_files": 14
+        },
+        "git_diff_check": "passed",
+        "uvicorn_http_smoke": {
+          "status": "passed",
+          "host": "127.0.0.1",
+          "port": "temporary free port",
+          "responses": {
+            "/health": 200,
+            "/docs": 200,
+            "/redoc": 200,
+            "/openapi.json": 200,
+            "/": 404,
+            "/incidents": 404
+          },
+          "process_stopped": true
+        }
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "reason": "The GitHub connector and REST API returned 404; no workflow result was available.",
+        "action_tag_shas_verified": true
+      },
+      "limitations": [
+        "Health is liveness only.",
+        "Incident analysis, collectors, persistence and AI are planned."
+      ]
+    }
   ]
 }

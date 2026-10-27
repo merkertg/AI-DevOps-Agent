@@ -17,7 +17,12 @@
   the Docker API read-only. Introduce it only in a separate local lab stage.
 - Use English for code, purpose docstrings, README, short instructions,
   architecture documents, ADRs and commit messages. Use accessible Russian for
-  stage guides, the roadmap, development log and verification report.
+  stage guides, the CI/CD guide, the roadmap, development log and verification
+  report.
+- Keep the documentation layout of the sibling AI Support Agent: README holds a
+  short description, the roadmap table and the documentation index; short
+  English instructions live in `docs/instructions/`; detailed Russian guides are
+  `docs/STAGE_NN.md` and `docs/CI_CD.md`.
 - Explain every new function's purpose. Update affected instructions,
   [development log](docs/DEVELOPMENT_LOG.md),
   [verification report](docs/VERIFICATION.md) and

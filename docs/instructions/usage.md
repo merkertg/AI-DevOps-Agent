@@ -1,8 +1,11 @@
-# Stage 01 API usage
+# Using the API
 
-[README](../../README.md) · [Quickstart](quickstart.md)
+[← README](../../README.md) · [All documentation](../../README.md#documentation)
 
-Start the service using the quickstart, then request:
+The Stage 01 health contract, available routes and configuration. Start the
+service with the [quickstart](quickstart.md) first.
+
+## Health check
 
 ```bash
 curl -i http://127.0.0.1:8004/health
@@ -17,6 +20,8 @@ HTTP `200`, default JSON:
 The strict `HealthResponse` contract has exactly two fields: `status` is the
 literal `"ok"`; `service` is the configured service name. This endpoint checks
 only that the API answers. It does not inspect Docker or an incident.
+
+## Routes
 
 | Request | Expected result |
 | --- | --- |
@@ -36,7 +41,7 @@ interface is separate from serving the JSON API.
 | --- | --- | --- |
 | `APP_NAME` | `ai-devops-agent` | String, trimmed, nonempty |
 | `APP_ENV` | `development` | `development`, `test` or `production` |
-| `APP_DEBUG` | `false` | Boolean |
+| `APP_DEBUG` | `false` | Boolean; keep disabled for normal use |
 
 For one zsh/Bash command:
 
@@ -48,6 +53,8 @@ The response now contains `"service":"devops-training"`. Explicit factory
 settings override process variables, then `.env`, then defaults. Settings
 loading is cached for the process. Restart to apply changes. `APP_ENV` is a
 validated environment label, not a deployment or authorization mechanism.
+
+## Not implemented yet
 
 There are no investigation, upload, container, agent or report endpoints yet.
 Their staged implementation is described in the [roadmap](../ROADMAP.md).
