@@ -124,13 +124,18 @@
     "reason": "Docker Desktop was not running; docker version could not reach the daemon socket, so compose up, image pull and live collection were not performed."
   },
   "publication": {
-    "status": "pending",
+    "status": "pushed",
     "branch": "main",
-    "remote_base_verified": "12166f989a39c69bdd72bf49b3e52acd0e806a29"
+    "commit_sha": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
+    "remote_sha_verified": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
+    "method": "git push origin main followed by git ls-remote origin refs/heads/main",
+    "remote_base_verified": "12166f989a39c69bdd72bf49b3e52acd0e806a29",
+    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 04 implementation."
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "No hosted workflow result observed for the Stage 04 commit; recheck after push."
+    "checked_commit": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
+    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's workflow runs; no hosted workflow result was observed."
   },
   "limitations": [
     "The request guard limits the collector's code; the process still holds the developer's Docker socket privileges.",
