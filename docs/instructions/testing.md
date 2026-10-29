@@ -78,6 +78,17 @@ Run the [Stage 05 walkthrough](../STAGE_05.md) to create/save in one process and
 show/verify in another. A verification mismatch is exit `1`; a command/store
 error is exit `2`. Store inspection opens SQLite read-only.
 
+Stage 06 runs the LangGraph agent with the offline provider and with scripted
+test providers; no language model is called. Tests cover strict decision
+parsing, every limit, tool arguments and result size, provider exceptions,
+requests for nonexistent mutating tools, an instruction-like log line,
+rejected references, the check catalog, an unchanged store and the absence of
+network connections even with LangSmith tracing variables set.
+
+```bash
+uv run --locked pytest tests/test_agent_contracts.py tests/test_agent_tools.py tests/test_agent_validation.py tests/test_agent_graph.py tests/test_agent_cli.py
+```
+
 Ruff checks common errors and imports; its format check does not modify files.
 Strict mypy checks annotated Python types. Pytest verifies behavior. The local
 documentation checker validates repository file targets; it does not establish

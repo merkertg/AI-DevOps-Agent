@@ -1,136 +1,299 @@
 {
   "checked_on": "2026-10-29",
-  "stage": "05",
-  "scope": "Immutable local investigation records, read-only saved-report inspection and deployment claims from the allowlisted Git lab",
-  "base_commit": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5",
+  "stage": "06",
+  "scope": "Bounded LangGraph investigation agent over one saved, verified investigation with seven read-only tools, code-enforced limits, strict decision parsing, fact-reference validation and a deterministic offline provider",
+  "base_commit": "4513fcad893c86f9a63f5a83dc92dc6d82a8ca3c",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
     "uv": "0.12.23",
-    "sqlite": "3.53.1",
-    "git": "2.54.0 (Apple Git-157)",
-    "gitpython": "3.2.0"
+    "langgraph": "1.2.14",
+    "langchain_core": "1.6.9",
+    "langsmith": "0.14.5"
   },
+  "provider": {
+    "name": "offline-rules-v1",
+    "language_model_called": false,
+    "real_model_adapter": "not_implemented",
+    "reason": "The user chose an offline-only provider for this stage; a real adapter is a later, separate step."
+  },
+  "agent_limits": {
+    "max_steps": 12,
+    "max_tool_calls": 8,
+    "max_seconds": 30,
+    "max_tool_result_chars": 8000,
+    "max_hypotheses": 5,
+    "max_text_chars": 600,
+    "max_notes": 5
+  },
+  "tools": [
+    "get_overview",
+    "list_sources",
+    "get_timeline",
+    "get_observation",
+    "list_facts",
+    "list_rule_findings",
+    "get_data_quality"
+  ],
+  "check_catalog": [
+    "review_dependency_endpoint",
+    "compare_deployed_revision",
+    "inspect_container_state",
+    "widen_log_window",
+    "collect_missing_source"
+  ],
   "local_checks": {
     "locked_sync": {
       "status": "passed",
-      "resolved_packages": 36,
-      "installed_packages": 33
+      "resolved_packages": 62,
+      "installed_packages": 59
     },
     "lock_check_offline": "passed",
     "dependencies_changed": {
       "intentional": true,
-      "added": {
-        "gitpython": "3.2.0",
-        "gitdb": "4.0.12",
-        "smmap": "5.0.3"
+      "added_direct": {
+        "langgraph": "1.2.14"
       },
+      "new_lock_packages": 26,
       "unrelated_dependency_versions_changed": false
     },
     "ruff_check": "passed",
     "ruff_format": {
       "status": "passed",
-      "formatted_files": 72
+      "formatted_files": 88
     },
     "mypy": {
       "status": "passed",
-      "source_files": 44,
+      "source_files": 57,
       "command": "uv run --locked mypy app tests scripts"
-    },
-    "mypy_with_lab": {
-      "status": "passed",
-      "source_files": 45,
-      "command": "uv run --locked mypy app tests scripts lab/stage05"
     },
     "pytest": {
       "status": "passed",
-      "passed": 519,
+      "passed": 632,
       "skipped": 0,
-      "previous_cases": 351,
-      "stage_05_cases": 168,
-      "snapshot_cases": 32,
-      "record_cases": 9,
-      "sqlite_cases": 32,
-      "git_reader_cases": 37,
-      "deployment_mapping_cases": 31,
-      "deployment_domain_cases": 14,
-      "saved_cli_cases": 13
+      "previous_cases": 519,
+      "stage_06_cases": 113,
+      "decision_cases": 37,
+      "tool_cases": 25,
+      "validation_cases": 21,
+      "graph_cases": 19,
+      "agent_cli_cases": 11,
+      "language_model_contacted": false
     },
-    "cli_storage_and_history_smoke": {
+    "agent_cli_smoke": {
       "status": "passed",
-      "real_cli_processes": true,
-      "observations": 5,
-      "facts": 3,
-      "hypotheses": 3,
-      "quality": "declared_complete",
-      "first_created": true,
-      "repeat_created": false,
-      "repeat_keeps_id_and_storage_time": true,
-      "repository_bytes_modes_mtimes_unchanged": true,
-      "show_exact_saved_bytes": true,
-      "verify_without_original_repository": "verified",
-      "read_commands_preserve_sqlite_bytes_and_mtime": true,
-      "stored_count": 1
+      "investigation_id": "inv-a47dc67a151ae94c6a4348d1",
+      "agent_status": "answered",
+      "steps": 6,
+      "tool_calls": 5,
+      "hypothesis_fact_ids": [
+        [
+          "fact-001",
+          "fact-002"
+        ],
+        [
+          "fact-002"
+        ],
+        [
+          "fact-003"
+        ]
+      ],
+      "next_check": "compare_deployed_revision",
+      "rejected_hypotheses": 0,
+      "insufficient_data": 0,
+      "byte_identical_reruns": true,
+      "store_sha256_unchanged": true,
+      "unknown_id_exit_code": 2
     },
-    "cli_regressions": {
-      "new_deployment_keeps_old_report_unchanged": "passed",
-      "missing_history_is_verifiable_gap": "passed",
-      "saved_verification_without_site_packages": "passed",
-      "tampered_verify_exits_one_and_show_refuses": "passed",
-      "fake_docker_store_composition": "passed"
+    "boundary_tests": {
+      "step_and_time_limits": "passed",
+      "tool_call_budget_refusal": "passed",
+      "provider_errors_without_details": "passed",
+      "mutating_tool_requests_refused": "passed",
+      "instruction_like_log_text_inert": "passed",
+      "invented_references_rejected": "passed",
+      "non_catalog_checks_rejected": "passed",
+      "unverified_record_refused": "passed",
+      "no_network_with_tracing_variables": "passed"
     },
     "purpose_docstrings": {
       "status": "passed",
-      "functions_and_classes": 262,
-      "new_or_modified_python_files": 23
+      "functions_and_classes": 134,
+      "new_or_modified_python_files": 15
     },
     "documentation_links": {
       "status": "passed",
-      "links": 277,
-      "markdown_files": 26
+      "links": 315,
+      "markdown_files": 29
     },
     "documentation_anchors": {
       "status": "passed",
       "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 282,
-      "markdown_files": 26,
+      "local_links": 320,
+      "markdown_files": 29,
       "broken_links": 0
     },
     "git_diff_check": "passed",
     "live_docker_lab": {
       "status": "not_run",
-      "reason": "Stage 05 storage composition uses the fake daemon; live Docker was not started."
+      "reason": "Stage 06 adds no Docker behavior; live Docker was not started."
     },
     "uvicorn_http_smoke": {
       "status": "not_run",
       "reason": "No HTTP behavior changed; existing health contracts passed in-process."
-    },
-    "sandbox": "The initial restricted run could not bind fake Unix sockets/test port; the permitted complete run passed all 519 tests."
+    }
   },
   "publication": {
-    "status": "pushed",
-    "branch": "main",
-    "commit_sha": "05be6c0458d078106c01616aedaa30722fb73255",
-    "remote_sha_verified": "05be6c0458d078106c01616aedaa30722fb73255",
-    "method": "git fetch before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
-    "remote_base_verified": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5",
-    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 05 implementation."
+    "status": "pending",
+    "remote_base_verified": "4513fcad893c86f9a63f5a83dc92dc6d82a8ca3c",
+    "note": "Push and remote CI are recorded in a follow-up documentation commit."
   },
   "remote_ci": {
     "status": "not_verified",
-    "checked_commit": "05be6c0458d078106c01616aedaa30722fb73255",
-    "reason": "GitHub connector returned 404 for this commit status request; no hosted workflow result was observed."
+    "reason": "Not yet published at the time of this record."
   },
   "limitations": [
-    "Hashes and append-only SQLite triggers detect consistency failures, not authenticated tamper resistance against a database owner.",
-    "Verification rebuilds with the current renderer; future renderer changes may produce a mismatch while the stored report remains available.",
-    "The Git reader is limited to a developer-selected copy of the fictional lab; pinned root object presence is not authentication or ancestry verification.",
-    "Git tag and object content limits do not impose a hard overall wall-clock deadline or bound all internal ref enumeration.",
-    "Deployment records are recorded claims and temporal order does not establish causation.",
+    "The offline provider follows fixed rules and is not a language model; a real model adapter and its live check are a later step.",
+    "Reference validation proves that cited facts and observations exist, not that a statement follows from them.",
+    "The time limit cannot interrupt a provider call that never returns; a network provider needs its own request timeout.",
+    "The agent is a CLI over one saved investigation; there is no HTTP API, telemetry or automatic repair.",
     "Supported redaction patterns do not remove arbitrary secrets; only fictional evidence is used.",
-    "No investigation HTTP API, LangGraph, LLM or telemetry is implemented; live Docker and new HTTP smoke were not run."
+    "Live Docker and a new HTTP smoke were not run."
   ],
   "previous_checks": [
+    {
+      "checked_on": "2026-10-29",
+      "stage": "05",
+      "scope": "Immutable local investigation records, read-only saved-report inspection and deployment claims from the allowlisted Git lab",
+      "base_commit": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23",
+        "sqlite": "3.53.1",
+        "git": "2.54.0 (Apple Git-157)",
+        "gitpython": "3.2.0"
+      },
+      "local_checks": {
+        "locked_sync": {
+          "status": "passed",
+          "resolved_packages": 36,
+          "installed_packages": 33
+        },
+        "lock_check_offline": "passed",
+        "dependencies_changed": {
+          "intentional": true,
+          "added": {
+            "gitpython": "3.2.0",
+            "gitdb": "4.0.12",
+            "smmap": "5.0.3"
+          },
+          "unrelated_dependency_versions_changed": false
+        },
+        "ruff_check": "passed",
+        "ruff_format": {
+          "status": "passed",
+          "formatted_files": 72
+        },
+        "mypy": {
+          "status": "passed",
+          "source_files": 44,
+          "command": "uv run --locked mypy app tests scripts"
+        },
+        "mypy_with_lab": {
+          "status": "passed",
+          "source_files": 45,
+          "command": "uv run --locked mypy app tests scripts lab/stage05"
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 519,
+          "skipped": 0,
+          "previous_cases": 351,
+          "stage_05_cases": 168,
+          "snapshot_cases": 32,
+          "record_cases": 9,
+          "sqlite_cases": 32,
+          "git_reader_cases": 37,
+          "deployment_mapping_cases": 31,
+          "deployment_domain_cases": 14,
+          "saved_cli_cases": 13
+        },
+        "cli_storage_and_history_smoke": {
+          "status": "passed",
+          "real_cli_processes": true,
+          "observations": 5,
+          "facts": 3,
+          "hypotheses": 3,
+          "quality": "declared_complete",
+          "first_created": true,
+          "repeat_created": false,
+          "repeat_keeps_id_and_storage_time": true,
+          "repository_bytes_modes_mtimes_unchanged": true,
+          "show_exact_saved_bytes": true,
+          "verify_without_original_repository": "verified",
+          "read_commands_preserve_sqlite_bytes_and_mtime": true,
+          "stored_count": 1
+        },
+        "cli_regressions": {
+          "new_deployment_keeps_old_report_unchanged": "passed",
+          "missing_history_is_verifiable_gap": "passed",
+          "saved_verification_without_site_packages": "passed",
+          "tampered_verify_exits_one_and_show_refuses": "passed",
+          "fake_docker_store_composition": "passed"
+        },
+        "purpose_docstrings": {
+          "status": "passed",
+          "functions_and_classes": 262,
+          "new_or_modified_python_files": 23
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 277,
+          "markdown_files": 26
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 282,
+          "markdown_files": 26,
+          "broken_links": 0
+        },
+        "git_diff_check": "passed",
+        "live_docker_lab": {
+          "status": "not_run",
+          "reason": "Stage 05 storage composition uses the fake daemon; live Docker was not started."
+        },
+        "uvicorn_http_smoke": {
+          "status": "not_run",
+          "reason": "No HTTP behavior changed; existing health contracts passed in-process."
+        },
+        "sandbox": "The initial restricted run could not bind fake Unix sockets/test port; the permitted complete run passed all 519 tests."
+      },
+      "publication": {
+        "status": "pushed",
+        "branch": "main",
+        "commit_sha": "05be6c0458d078106c01616aedaa30722fb73255",
+        "remote_sha_verified": "05be6c0458d078106c01616aedaa30722fb73255",
+        "method": "git fetch before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
+        "remote_base_verified": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5",
+        "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 05 implementation."
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "checked_commit": "05be6c0458d078106c01616aedaa30722fb73255",
+        "reason": "GitHub connector returned 404 for this commit status request; no hosted workflow result was observed."
+      },
+      "limitations": [
+        "Hashes and append-only SQLite triggers detect consistency failures, not authenticated tamper resistance against a database owner.",
+        "Verification rebuilds with the current renderer; future renderer changes may produce a mismatch while the stored report remains available.",
+        "The Git reader is limited to a developer-selected copy of the fictional lab; pinned root object presence is not authentication or ancestry verification.",
+        "Git tag and object content limits do not impose a hard overall wall-clock deadline or bound all internal ref enumeration.",
+        "Deployment records are recorded claims and temporal order does not establish causation.",
+        "Supported redaction patterns do not remove arbitrary secrets; only fictional evidence is used.",
+        "No investigation HTTP API, LangGraph, LLM or telemetry is implemented; live Docker and new HTTP smoke were not run."
+      ]
+    },
     {
       "checked_on": "2026-10-29",
       "stage": "04",

@@ -34,6 +34,12 @@ For saved reports and the fictional deployment-history lab, follow
 storage to either investigation CLI; `--repository PATH` reads allowlisted lab
 deployment evidence. No database server is required.
 
+## Run the bounded agent
+
+After saving an investigation, run the offline LangGraph agent on its ID as
+described in the [bounded investigation agent](bounded-agent.md). It needs no
+model, network or credentials.
+
 ## Start the API
 
 ```bash

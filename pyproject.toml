@@ -7,6 +7,7 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
     "fastapi>=0.142.2,<1",
     "gitpython>=3.2,<4",
+    "langgraph>=1.2.12,<1.3",
     "pydantic>=2.12,<3",
     "pydantic-settings>=2.15,<3",
     "uvicorn>=0.54,<1",
@@ -39,7 +40,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.isort]
 # Shared offline test helpers import as local modules from tests/.
-known-local-folder = ["docker_fake", "git_lab"]
+known-local-folder = ["agent_support", "docker_fake", "git_lab"]
 
 [tool.mypy]
 strict = true

@@ -67,3 +67,6 @@ Their staged implementation is described in the [roadmap](../ROADMAP.md).
 Stage 05 storage and deployment history are CLI features. Use
 [saved investigations](investigation-history.md) for `--repository`, `--store`
 and the read-only `list`, `show`, `verify` commands. They add no HTTP route.
+
+The Stage 06 agent is also a CLI, `python -m app.agent ID --store PATH`; see the
+[bounded investigation agent](bounded-agent.md). It adds no HTTP route.

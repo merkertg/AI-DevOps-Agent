@@ -6,7 +6,7 @@ deployment history, builds an evidence timeline and proposes possible causes
 with references to the observations behind them. An engineer reviews the report
 and chooses the next action. Incident data used by the project is fictional.
 
-The current implementation covers **Stages 01–05**: a FastAPI service with
+The current implementation covers **Stages 01–06**: a FastAPI service with
 `GET /health` and validated settings, plus a pure Python incident model,
 reproducible evidence timeline and deterministic findings on fictional data.
 An offline CLI accepts bounded fictional JSON fixtures, removes documented
@@ -17,13 +17,17 @@ guarded `GET` requests into the same report.
 Optional deployment tags from the fictional Git lab add evidence to the
 timeline. Investigations can be saved in local SQLite with versioned inputs,
 hashes and reports, then listed, shown and verified in another process.
+A bounded LangGraph agent reads one saved investigation through seven read-only
+tools and returns unconfirmed hypotheses that must cite existing facts, plus one
+proposed diagnostic check. Its provider is deterministic and offline; a real
+model adapter is a later step.
 Facts, causal hypotheses and conflicting observations remain separate. Tests,
 Ruff, strict mypy, locked dependencies and a GitHub Actions configuration are
 included. Tests and the offline CLI need no model, Docker daemon, external database service or
 credentials; the optional lab needs a local Docker Engine.
-LangGraph, Prometheus and OpenTelemetry are **planned**. The future agent will have bounded read-only
-tools; it will not execute shell commands, restart containers, deploy or apply
-fixes. Actual checks, publication state and limitations are recorded in
+Prometheus, OpenTelemetry and a real model adapter are **planned**. The agent
+has only bounded read-only tools; it cannot execute shell commands, restart
+containers, deploy or apply fixes. Actual checks, publication state and limitations are recorded in
 [verification](docs/VERIFICATION.md).
 
 **Start with the [Stage 01 guide in Russian](docs/STAGE_01.md)** or the
@@ -39,7 +43,7 @@ interactive API documentation is at <http://127.0.0.1:8004/docs>.
 | 03 | Bounded input, normalization, redaction and CLI report | Implemented; checked locally, remote CI status in [verification](docs/VERIFICATION.md) |
 | 04 | Docker lab and observation collector | Implemented; checked locally with a fake daemon, live lab and remote CI status in [verification](docs/VERIFICATION.md) |
 | 05 | Investigation storage and deployment history | Implemented; local checks and remote publication in [verification](docs/VERIFICATION.md) |
-| 06 | Bounded LangGraph investigation | Planned |
+| 06 | Bounded LangGraph investigation | Implemented with an offline provider; checks and publication in [verification](docs/VERIFICATION.md) |
 | 07 | Prometheus and OpenTelemetry correlation | Planned |
 | 08 | Investigation API, evaluations and container delivery | Planned |
 
@@ -55,6 +59,7 @@ Instructions ([docs/instructions/](docs/instructions/)):
 - [Offline investigation](docs/instructions/offline-investigation.md): fixture schema, CLI, limits, redaction and reports
 - [Docker lab and collector](docs/instructions/docker-lab.md): lab scenario, collector options, allowlist, limits and gaps
 - [Saved investigations and deployment history](docs/instructions/investigation-history.md): local lab, SQLite, idempotent saves, show and verify
+- [Bounded investigation agent](docs/instructions/bounded-agent.md): graph, read-only tools, limits, validation and report
 - [Testing and verification](docs/instructions/testing.md): lint, formatting, strict types, tests, documentation links, manual HTTP smoke check
 - [CI and stage publication](docs/instructions/ci-and-delivery.md)
 - [Project structure](docs/instructions/project-structure.md)
@@ -66,6 +71,7 @@ Learning guides in Russian:
 - [Stage 03: Bounded input and offline report](docs/STAGE_03.md)
 - [Stage 04: Docker lab and bounded collector](docs/STAGE_04.md)
 - [Stage 05: Saved investigations and deployment history](docs/STAGE_05.md)
+- [Stage 06: Bounded LangGraph agent](docs/STAGE_06.md)
 - [Roadmap and completion criteria](docs/ROADMAP.md)
 - [CI/CD guide](docs/CI_CD.md)
 - [Learning materials index](docs/guide/README.md) and
@@ -79,4 +85,5 @@ Design and history:
 - [Architecture decision 0002: Docker access for the lab collector](docs/adr/0002-docker-lab-collector-access.md)
 - [Architecture decision 0003: Immutable investigation records](docs/adr/0003-immutable-investigation-records.md)
 - [Architecture decision 0004: Recorded lab deployments](docs/adr/0004-recorded-lab-deployments.md)
+- [Architecture decision 0005: Bounded LangGraph agent](docs/adr/0005-bounded-langgraph-agent.md)
 - [Development log](docs/DEVELOPMENT_LOG.md)

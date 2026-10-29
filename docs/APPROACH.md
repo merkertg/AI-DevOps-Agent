@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stages 01–05
+## Current implementation: Stages 01–06
 
 Stage 01 contains a small FastAPI application:
 
@@ -123,6 +123,24 @@ See [ADR 0003](adr/0003-immutable-investigation-records.md),
 [ADR 0004](adr/0004-recorded-lab-deployments.md) and
 [saved investigations](instructions/investigation-history.md).
 
+Stage 06 adds a bounded agent over one saved investigation:
+
+```text
+saved record → verify → frozen view (facts, observations, rule findings, quality)
+                                  ↓
+LangGraph: decide ⇄ run_tool (7 read-only tools) → finish
+                                  ↓
+validated answer: cited unconfirmed hypotheses + catalog check + missing data
+```
+
+The provider returns untrusted documents that are parsed strictly. Steps, tool
+calls, time and result sizes are limited in code. Hypotheses must cite existing
+fact IDs; the next check comes from a fixed diagnostic catalog and is never
+executed. LangSmith tracing is disabled for the run. The only provider is the
+deterministic `offline-rules-v1`; a real model adapter is a later step. See
+[ADR 0005](adr/0005-bounded-langgraph-agent.md) and the
+[bounded agent](instructions/bounded-agent.md).
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
@@ -137,7 +155,8 @@ See [ADR 0003](adr/0003-immutable-investigation-records.md),
 | Docker Engine API over a Unix socket (standard library) | Disposable lab and guarded read-only collector | Implemented, Stage 04 |
 | GitPython | Read-only deployment history of the fictional allowlisted lab | Implemented, Stage 05 |
 | SQLite (standard library) | Append-only local records, canonical input and reproduction checks | Implemented, Stage 05 |
-| LangGraph | Bounded investigation orchestration | Planned, Stage 06 |
+| LangGraph | Bounded investigation orchestration with an offline provider | Implemented, Stage 06 |
+| Language model adapter | Real provider behind the agent port | Planned, separate step |
 | Prometheus, OpenTelemetry | Telemetry correlation | Planned, Stage 07 |
 
 Runtime dependencies for later stages are introduced with the corresponding
@@ -176,13 +195,14 @@ It has tests and explicit exclusions, including arbitrary names, IP addresses,
 encoded or unknown secrets. This filter does not guarantee arbitrary logs are
 safe for persistence or model calls. The examples remain fictional.
 
-The model will receive only allowlisted read-only tools with validated arguments.
-It may propose an evidence-linked hypothesis or a further diagnostic check.
-Deterministic code will enforce incident scope, tool budgets and source
-references. Log text is untrusted data, including text that looks like an
-instruction to the agent. Missing or conflicting evidence must remain visible.
+The agent receives only allowlisted read-only tools with validated arguments
+over one saved investigation. It may propose an evidence-linked hypothesis or
+a diagnostic check from a fixed catalog. Deterministic code enforces scope, tool
+budgets and fact references. Log text is untrusted data, including text that
+looks like an instruction to the agent. Missing or conflicting evidence remains
+visible in the agent report.
 
-There will be no model tool for shell execution, container exec, restart,
+There is no agent tool for shell execution, container exec, restart,
 deployment, file modification or automatic repair. Stage 04 reads Docker through
 a host collector in a disposable lab, not through a model tool. A read-only
 application method alone is not a permission boundary for an unrestricted Docker
@@ -190,8 +210,8 @@ socket: the [Docker Engine API](https://docs.docker.com/reference/api/engine/)
 exposes every daemon operation to the socket holder. The collector's guard limits
 its own requests; the process still holds the developer's Docker rights. Shared
 or remote use needs daemon-side enforcement, per
-[ADR 0002](adr/0002-docker-lab-collector-access.md). The future agent will
-receive collected observations, not the Docker client.
+[ADR 0002](adr/0002-docker-lab-collector-access.md). The agent receives
+collected observations, not the Docker client or the Git reader.
 
 ## Verification and isolation
 
@@ -214,6 +234,7 @@ and the detailed [CI/CD guide](CI_CD.md).
 
 ## Next steps
 
-Stage 06 adds bounded LangGraph investigation over prepared observations and
-saved materials. Model providers and any wider access require their own checks.
-The [roadmap](ROADMAP.md) lists the following stages and their completion criteria.
+A real model adapter can be added behind the Stage 06 provider port with its own
+settings, request timeout and separate live verification. Stage 07 adds
+Prometheus and OpenTelemetry to the lab. The [roadmap](ROADMAP.md) lists the
+following stages and their completion criteria.

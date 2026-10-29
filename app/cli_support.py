@@ -9,7 +9,11 @@ from typing import NoReturn
 
 from app import __version__
 from app.application.inputs import PreparedInput, add_deployment_evidence
-from app.application.records import build_record
+from app.application.records import (
+    INVESTIGATION_ID,
+    InvestigationRecord,
+    build_record,
+)
 from app.application.reporting import render_report
 from app.infrastructure.deployments import (
     DeploymentReader,
@@ -103,3 +107,17 @@ def finish(prepared: PreparedInput, store: Path | None, stored_at: datetime) -> 
     with SqliteInvestigationStore.open(store, create=True) as investigations:
         saved, created = investigations.add(record)
     return json_document({"created": created, **saved.summary.as_json()})
+
+
+def find_record(
+    store: SqliteInvestigationStore, investigation_id: str
+) -> InvestigationRecord:
+    """Find one record by a well-formed identifier or fail with a safe message."""
+    if not INVESTIGATION_ID.fullmatch(investigation_id):
+        raise StoreError(
+            "Investigation ID must be inv- followed by 24 lowercase hex digits."
+        )
+    record = store.get(investigation_id)
+    if record is None:
+        raise StoreError("Investigation was not found.")
+    return record

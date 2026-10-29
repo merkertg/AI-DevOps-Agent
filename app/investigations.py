@@ -4,32 +4,13 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from app.application.records import (
-    INVESTIGATION_ID,
-    InvestigationRecord,
-    integrity_problems,
-    verify_record,
-)
-from app.cli_support import SafeArgumentParser, json_document
+from app.application.records import integrity_problems, verify_record
+from app.cli_support import SafeArgumentParser, find_record, json_document
 from app.infrastructure.sqlite_store import (
     MAX_RECENT,
     SqliteInvestigationStore,
     StoreError,
 )
-
-
-def _record(
-    store: SqliteInvestigationStore, investigation_id: str
-) -> InvestigationRecord:
-    """Find one record by a well-formed identifier or fail with a safe message."""
-    if not INVESTIGATION_ID.fullmatch(investigation_id):
-        raise StoreError(
-            "Investigation ID must be inv- followed by 24 lowercase hex digits."
-        )
-    record = store.get(investigation_id)
-    if record is None:
-        raise StoreError("Investigation was not found.")
-    return record
 
 
 def _parser() -> SafeArgumentParser:
@@ -77,7 +58,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     }
                 )
             elif arguments.command == "show":
-                record = _record(store, arguments.investigation_id)
+                record = find_record(store, arguments.investigation_id)
                 if integrity_problems(record):
                     raise StoreError(
                         "Stored investigation failed its integrity check; "
@@ -85,7 +66,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     )
                 document = record.report_document
             else:
-                result = verify_record(_record(store, arguments.investigation_id))
+                result = verify_record(find_record(store, arguments.investigation_id))
                 document = json_document(result)
                 code = 0 if result["status"] == "verified" else 1
     except StoreError as error:

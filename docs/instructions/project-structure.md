@@ -25,10 +25,17 @@ app/
     deployments.py       # Allowlisted deployment metadata, time checks and evidence mapping
     git_history.py       # Read annotated Git objects through GitPython without writes
     sqlite_store.py      # Atomic append-only local store and read-only inspection
+  agent/
+    contracts.py         # Limits, provider port and strict parsing of untrusted decisions
+    tools.py             # Frozen investigation view and seven read-only, paged tools
+    validation.py        # Fact-reference checks, diagnostic check catalog, missing data
+    graph.py             # LangGraph decide → run_tool → finish loop and agent report
+    offline.py           # Deterministic offline provider on fixed rules
+    __main__.py          # python -m app.agent ID --store PATH
   cli.py                 # Offline fixture investigation; stdout JSON, safe stderr
   collect.py             # Stage 04 lab collector CLI; stdout JSON, safe stderr
   cli_support.py         # Shared optional repository/store composition and safe arguments
-  investigations.py     # Read-only list, show and verify of saved investigations
+  investigations.py      # Read-only list, show and verify of saved investigations
 fixtures/stage03/         # Two fictional JSON examples: known signals and partial collection
 fixtures/stage05/         # Fictional failure after a recorded lab deployment
 lab/stage04/
@@ -57,6 +64,12 @@ tests/
   test_deployments.py    # Structured tags, explicit deploy times, gaps and filtering
   test_domain_deployments.py # Deployment facts and cautious temporal hypotheses
   test_investigations_cli.py # Real save/read/verify processes, old reports and safe errors
+  agent_support.py       # Fictional agent inputs and scripted providers
+  test_agent_contracts.py # Strict decision parsing and limit validation
+  test_agent_tools.py    # Read-only catalog, paging, arguments and result size
+  test_agent_validation.py # Fact references, check catalog, redaction and missing data
+  test_agent_graph.py    # Limits, provider errors, injections, determinism, no network
+  test_agent_cli.py      # Saved-investigation runs, refusals and an unchanged store
 scripts/
   check_docs.py          # Local Markdown link targets; external URLs are not requested
 docs/
@@ -68,6 +81,7 @@ docs/
   STAGE_03.md            # Bounded intake, redaction and CLI learning guide in Russian
   STAGE_04.md            # Docker lab, access boundary and collector guide in Russian
   STAGE_05.md            # SQLite records, verification and deployment history in Russian
+  STAGE_06.md            # Bounded LangGraph agent, tools, limits and validation in Russian
   ROADMAP.md             # Planned stages and completion criteria in Russian
   CI_CD.md               # CI and stage publication guide in Russian
   APPROACH.md            # Current design, boundaries and planned architecture
@@ -105,18 +119,23 @@ report; `SqliteInvestigationStore` inserts once. `investigations list/show/verif
 reads the stored snapshot in a later process. See
 [saved investigations and deployment history](investigation-history.md).
 
+The agent path is `python -m app.agent → find_record() → verify_record() →
+build_view() → run_agent() (LangGraph: decide ⇄ run_tool → finish) →
+validate_answer() → JSON`. The graph composes application tools; the domain and
+application layers do not import LangGraph. See
+[bounded investigation agent](bounded-agent.md).
+
 ## Planned responsibilities
 
 Create new layers only when they own behavior:
 
 | Future location | First responsibility |
 | --- | --- |
-| Additional application ports | Model providers when a use case needs them |
-| Additional infrastructure adapters | Model and telemetry integration |
+| Model adapter behind `AgentProvider` | Real language model with explicit settings |
+| Additional infrastructure adapters | Telemetry integration |
 | Further lab services | Telemetry and more controlled incidents (Stage 07) |
 | Evaluation suite | Independent incident labels and quality thresholds |
 
 These locations are design directions, not implemented directories. The original
-stack continues as planned: LangGraph for bounded
-orchestration, Prometheus and OpenTelemetry for correlation. See the
+stack continues as planned: Prometheus and OpenTelemetry for correlation. See the
 [roadmap](../ROADMAP.md) for their order and completion criteria.
