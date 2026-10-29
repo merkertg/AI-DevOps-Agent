@@ -50,5 +50,6 @@ Log messages are inert strings. They neither supply executable instructions nor
 trigger error rules merely by containing error-like prose. The domain does not
 read files, inspect Docker, change the host, call a model or generate a CLI/HTTP
 report. Its reference checks establish that evidence exists, not that arbitrary
-external claims are true. File limits, parsing, redaction and CLI reporting are
-planned for Stage 03; use fictional data at this stage.
+external claims are true. Stage 03 adds file limits, parsing, redaction and CLI
+reporting in separate layers; see [offline investigation](offline-investigation.md).
+Direct domain calls still expect already structured inputs. Use fictional data.

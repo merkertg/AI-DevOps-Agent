@@ -10,9 +10,20 @@ optionally change settings.
 - Python 3.12. The project accepts `>=3.12,<3.13`; `.python-version` selects 3.12.
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependency
   and environment management.
-- No `.env`, Docker, database or model key is needed for Stage 01.
+- No `.env`, Docker, database or model key is needed for Stages 01–03.
 
 Run all commands from the project root, the directory containing `pyproject.toml`.
+
+## Run an offline investigation
+
+```bash
+uv sync --locked
+uv run --locked python -m app.cli fixtures/stage03/connection_failure.json
+```
+
+This prints a JSON report without starting the web server. Input is fictional;
+the report retains observations, evidence links and uncertainty. See
+[offline investigation](offline-investigation.md) for the format and limits.
 
 ## Start the API
 

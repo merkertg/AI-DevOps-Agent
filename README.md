@@ -6,13 +6,15 @@ deployment history, builds an evidence timeline and proposes possible causes
 with references to the observations behind them. An engineer reviews the report
 and chooses the next action. Incident data used by the project is fictional.
 
-The current implementation covers **Stages 01–02**: a FastAPI service with
+The current implementation covers **Stages 01–03**: a FastAPI service with
 `GET /health` and validated settings, plus a pure Python incident model,
 reproducible evidence timeline and deterministic findings on fictional data.
+An offline CLI accepts bounded fictional JSON fixtures, removes documented
+sensitive text patterns and prints a report with evidence and data-quality gaps.
 Facts, causal hypotheses and conflicting observations remain separate. Tests,
 Ruff, strict mypy, locked dependencies and a GitHub Actions configuration are
 included. No model, Docker daemon, database or credentials are required.
-File input, CLI reports, Docker collection, GitPython, LangGraph, Prometheus and
+Docker collection, GitPython, LangGraph, Prometheus and
 OpenTelemetry are **planned**. The future agent will have bounded read-only
 tools; it will not execute shell commands, restart containers, deploy or apply
 fixes. Actual checks, publication state and limitations are recorded in
@@ -28,7 +30,7 @@ interactive API documentation is at <http://127.0.0.1:8004/docs>.
 | --- | --- | --- |
 | 01 | Python project, FastAPI, settings, health endpoint, tests and documentation | Implemented; checked locally, remote CI status in [verification](docs/VERIFICATION.md) |
 | 02 | Incident, evidence and timeline domain model | Implemented; checked locally, remote CI status in [verification](docs/VERIFICATION.md) |
-| 03 | Bounded input, normalization, redaction and CLI report | Planned |
+| 03 | Bounded input, normalization, redaction and CLI report | Implemented; checked locally, remote CI status in [verification](docs/VERIFICATION.md) |
 | 04 | Docker lab and observation collector | Planned |
 | 05 | Investigation storage and deployment history | Planned |
 | 06 | Bounded LangGraph investigation | Planned |
@@ -44,6 +46,7 @@ Instructions ([docs/instructions/](docs/instructions/)):
 - [Quickstart](docs/instructions/quickstart.md): requirements, local start, health check, optional settings
 - [Using the API](docs/instructions/usage.md): health contract, routes, configuration and its precedence
 - [Incident domain](docs/instructions/incident-domain.md): Python inputs, timeline, findings and boundaries
+- [Offline investigation](docs/instructions/offline-investigation.md): fixture schema, CLI, limits, redaction and reports
 - [Testing and verification](docs/instructions/testing.md): lint, formatting, strict types, tests, documentation links, manual HTTP smoke check
 - [CI and stage publication](docs/instructions/ci-and-delivery.md)
 - [Project structure](docs/instructions/project-structure.md)
@@ -52,6 +55,7 @@ Learning guides in Russian:
 
 - [Stage 01: FastAPI foundation](docs/STAGE_01.md)
 - [Stage 02: Incident, evidence and timeline](docs/STAGE_02.md)
+- [Stage 03: Bounded input and offline report](docs/STAGE_03.md)
 - [Roadmap and completion criteria](docs/ROADMAP.md)
 - [CI/CD guide](docs/CI_CD.md)
 - [Learning materials index](docs/guide/README.md) and

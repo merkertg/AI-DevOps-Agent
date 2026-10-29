@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "incident": {
+    "incident_id": "training-partial-collection",
+    "service": "training-api",
+    "starts_at": "2026-10-27T10:00:00Z",
+    "ends_at": "2026-10-27T10:05:00Z"
+  },
+  "sources": [
+    {"source_id": "api-log", "service": "training-api", "kind": "application_log"},
+    {"source_id": "api-container", "service": "training-api", "kind": "container_state"}
+  ],
+  "observations": [
+    {
+      "observation_id": "obs-refusal",
+      "source_id": "api-log",
+      "event_time": "2026-10-27T10:00:10Z",
+      "received_at": "2026-10-27T10:06:00Z",
+      "kind": "connection_refused",
+      "message": "Fictional dependency connection refused."
+    }
+  ],
+  "collection": {
+    "complete": false,
+    "truncated": true,
+    "gaps": ["Fictional container state was unavailable; contact learner@example.invalid."]
+  }
+}

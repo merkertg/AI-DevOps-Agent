@@ -40,6 +40,17 @@ error signals, conflicting exit codes, immutable results and inert log text.
 They do not parse external log formats or validate a live collector. Run the
 domain subset with `uv run --locked pytest tests/test_domain.py`.
 
+Stage 03 adds strict fixture parsing, finite limits, supported redaction rules,
+visible collection gaps and CLI exit-code checks. Run its subset with:
+
+```bash
+uv run --locked pytest tests/test_fixtures.py tests/test_redaction.py tests/test_reporting.py tests/test_cli.py
+```
+
+CLI subprocess tests run without site packages or web configuration. Invalid
+input must produce exit `2`, empty stdout and safe stderr. Both
+[fictional fixtures](../../fixtures/stage03/) are exercised through reporting.
+
 Ruff checks common errors and imports; its format check does not modify files.
 Strict mypy checks annotated Python types. Pytest verifies behavior. The local
 documentation checker validates repository file targets; it does not establish

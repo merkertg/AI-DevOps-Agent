@@ -1,12 +1,21 @@
 {
-  "checked_on": "2026-10-27",
-  "stage": "02",
-  "scope": "Pure Python incident domain, deterministic evidence timeline, facts, hypotheses and contradictions",
-  "base_commit": "006814afff266b2567276edd92a56ac50bdef5d5",
+  "checked_on": "2026-10-29",
+  "implemented_on": "2026-10-27",
+  "stage": "03",
+  "scope": "Bounded fictional UTF-8 JSON intake, normalization, supported redaction and deterministic offline CLI reporting",
+  "base_commit": "7c5f41da0653d4288adef9c93008d1a3f761549f",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
     "uv": "0.12.23"
+  },
+  "input_limits": {
+    "max_input_bytes": 1048576,
+    "max_sources": 32,
+    "max_observations": 1000,
+    "max_message_chars": 2048,
+    "max_incident_seconds": 86400,
+    "max_gaps": 32
   },
   "local_checks": {
     "locked_sync": "passed",
@@ -15,74 +24,183 @@
     "ruff_check": "passed",
     "ruff_format": {
       "status": "passed",
-      "formatted_files": 28
+      "formatted_files": 41
     },
     "mypy": {
       "status": "passed",
-      "source_files": 11
+      "source_files": 22
     },
     "pytest": {
       "status": "passed",
-      "passed": 94,
+      "passed": 231,
       "skipped": 0,
-      "domain_cases": 62,
-      "foundation_cases": 32
+      "previous_cases": 94,
+      "stage_03_cases": 137,
+      "fixture_cases": 65,
+      "redaction_cases": 51,
+      "reporting_cases": 12,
+      "cli_cases": 9
     },
-    "stdlib_only_domain": {
+    "stdlib_only_cli": {
       "status": "passed",
-      "method": "Subprocess Python -I -S imports domain and runs empty investigation without site packages"
+      "method": "Python -I -S subprocess executes app.cli beside invalid .env without site packages"
     },
-    "stage_02_documented_example": {
+    "cli_examples": {
       "status": "passed",
-      "timeline": [
-        "obs-refusal",
-        "obs-exit"
-      ],
-      "facts": 2,
-      "hypotheses": 2,
-      "contradictions": 0,
-      "equal_after_reordering": true
+      "connection_failure": {
+        "observations": 3,
+        "facts": 2,
+        "hypotheses": 2,
+        "contradictions": 0,
+        "quality": "declared_complete"
+      },
+      "partial_incident": {
+        "observations": 1,
+        "facts": 1,
+        "hypotheses": 1,
+        "quality": "partial",
+        "missing_sources": [
+          "api-container"
+        ]
+      },
+      "same_stdout_on_repeat": true,
+      "fictional_email_removed": true,
+      "documented_minimal_json": "passed; completeness unknown",
+      "malformed_file": "passed; exit 2, empty stdout, no path or traceback in stderr"
+    },
+    "independent_boundary_review": {
+      "status": "passed",
+      "checked_on": "2026-10-27",
+      "additional_scenarios": 19,
+      "remaining_blockers": 0
+    },
+    "new_function_purpose_docstrings": {
+      "status": "passed",
+      "method": "AST check of new modules and tests",
+      "modules": 11,
+      "definitions": 87,
+      "missing": 0
     },
     "documentation_links": {
       "status": "passed",
-      "links": 138,
-      "markdown_files": 17
+      "links": 175,
+      "markdown_files": 19
     },
     "documentation_anchors": {
       "status": "passed",
       "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 143,
-      "markdown_files": 17,
+      "local_links": 180,
+      "markdown_files": 19,
       "broken_links": 0
     },
     "git_diff_check": "passed",
     "uvicorn_http_smoke": {
       "status": "not_run",
-      "reason": "No HTTP behavior changed in Stage 02; foundation HTTP contracts passed in-process. Earlier real HTTP checks remain historical."
+      "reason": "Stage 03 changes only offline workflow; existing API passed in-process tests. Earlier real HTTP checks remain historical."
     }
   },
   "publication": {
-    "status": "pushed",
+    "status": "pending",
     "branch": "main",
-    "commit_sha": "67dbc303333419fa66235662da82f486754e6d10",
-    "remote_sha_verified": "67dbc303333419fa66235662da82f486754e6d10",
-    "method": "git push origin main followed by git ls-remote origin refs/heads/main",
-    "remote_base_verified": "006814afff266b2567276edd92a56ac50bdef5d5",
-    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 02 implementation."
+    "remote_base_verified": "7c5f41da0653d4288adef9c93008d1a3f761549f"
   },
   "remote_ci": {
     "status": "not_verified",
-    "checked_commit": "67dbc303333419fa66235662da82f486754e6d10",
-    "reason": "GitHub connector returned 404 for this commit status request; no hosted workflow result was observed."
+    "reason": "No hosted workflow result observed for the Stage 03 commit; recheck after push."
   },
   "limitations": [
-    "Inputs are fictional structured Python objects; file ingestion, limits, redaction and CLI reporting are planned for Stage 03.",
-    "Only contradictory exit codes from the same source at the same event instant are detected.",
-    "Reference resolution does not prove semantic truth of arbitrary external statements.",
-    "No investigation HTTP API, live Docker, storage, Git history, model, agent or telemetry integration.",
+    "Input is one bounded regular UTF-8 JSON fixture; arbitrary plain-text log formats are unsupported.",
+    "Supported redaction patterns do not cover arbitrary names, IP addresses, encoded values or unknown secret formats.",
+    "Collection completeness is a producer declaration; root cause remains unconfirmed.",
+    "No investigation HTTP API, Docker collection, stored investigations, Git history, model, agent or telemetry integration.",
     "Health remains liveness only."
   ],
   "previous_checks": [
+    {
+      "checked_on": "2026-10-27",
+      "stage": "02",
+      "scope": "Pure Python incident domain, deterministic evidence timeline, facts, hypotheses and contradictions",
+      "base_commit": "006814afff266b2567276edd92a56ac50bdef5d5",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23"
+      },
+      "local_checks": {
+        "locked_sync": "passed",
+        "lock_check_offline": "passed",
+        "dependencies_changed": false,
+        "ruff_check": "passed",
+        "ruff_format": {
+          "status": "passed",
+          "formatted_files": 28
+        },
+        "mypy": {
+          "status": "passed",
+          "source_files": 11
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 94,
+          "skipped": 0,
+          "domain_cases": 62,
+          "foundation_cases": 32
+        },
+        "stdlib_only_domain": {
+          "status": "passed",
+          "method": "Subprocess Python -I -S imports domain and runs empty investigation without site packages"
+        },
+        "stage_02_documented_example": {
+          "status": "passed",
+          "timeline": [
+            "obs-refusal",
+            "obs-exit"
+          ],
+          "facts": 2,
+          "hypotheses": 2,
+          "contradictions": 0,
+          "equal_after_reordering": true
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 138,
+          "markdown_files": 17
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 143,
+          "markdown_files": 17,
+          "broken_links": 0
+        },
+        "git_diff_check": "passed",
+        "uvicorn_http_smoke": {
+          "status": "not_run",
+          "reason": "No HTTP behavior changed in Stage 02; foundation HTTP contracts passed in-process. Earlier real HTTP checks remain historical."
+        }
+      },
+      "publication": {
+        "status": "pushed",
+        "branch": "main",
+        "commit_sha": "67dbc303333419fa66235662da82f486754e6d10",
+        "remote_sha_verified": "67dbc303333419fa66235662da82f486754e6d10",
+        "method": "git push origin main followed by git ls-remote origin refs/heads/main",
+        "remote_base_verified": "006814afff266b2567276edd92a56ac50bdef5d5",
+        "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 02 implementation."
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "checked_commit": "67dbc303333419fa66235662da82f486754e6d10",
+        "reason": "GitHub connector returned 404 for this commit status request; no hosted workflow result was observed."
+      },
+      "limitations": [
+        "Inputs are fictional structured Python objects; file ingestion, limits, redaction and CLI reporting are planned for Stage 03.",
+        "Only contradictory exit codes from the same source at the same event instant are detected.",
+        "Reference resolution does not prove semantic truth of arbitrary external statements.",
+        "No investigation HTTP API, live Docker, storage, Git history, model, agent or telemetry integration.",
+        "Health remains liveness only."
+      ]
+    },
     {
       "checked_on": "2026-10-27",
       "stage": "01",

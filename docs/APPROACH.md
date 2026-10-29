@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stages 01–02
+## Current implementation: Stages 01–03
 
 Stage 01 contains a small FastAPI application:
 
@@ -59,12 +59,29 @@ suppressed. An empty timeline is valid and establishes no cause. File parsing,
 normalization and redaction belong to Stage 03. The
 [Stage 02 guide](STAGE_02.md) describes the current contracts and limits.
 
+Stage 03 adds an offline workflow:
+
+```text
+regular UTF-8 JSON file → bounded fixture adapter → PreparedInput
+                                                     ↓
+CLI stdout ← stable JSON report ← build_report() ← investigate()
+```
+
+The fixture adapter rejects oversized input, unsupported schema fields, invalid
+types and inconsistent domain evidence. It normalizes metadata and timestamps,
+removes documented sensitive text patterns and then truncates long messages
+with explicit metadata. Reports expose gaps, upstream truncation, missing-source
+coverage and unknown circumstances. A complete flag is a producer declaration,
+not proof of complete collection. The CLI never echoes raw file/argument values
+in error diagnostics. See [offline investigation](instructions/offline-investigation.md).
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
 | --- | --- | --- |
 | Python 3.12, uv, `uv.lock` | Runtime and reproducible environment | Implemented |
 | Standard-library dataclasses, enums and datetime | Immutable incident scope, timeline and evidence-linked rules | Implemented, Stage 02 |
+| Standard-library JSON, file adapter and argparse | Bounded offline intake, supported redaction and CLI report | Implemented, Stage 03 |
 | FastAPI, Uvicorn | HTTP API and ASGI server | Implemented |
 | Pydantic, pydantic-settings | Response contract and settings validation | Implemented |
 | pytest, Ruff, mypy | Behavior, style and strict type checks | Implemented |
@@ -98,16 +115,17 @@ that domain. Future directories are not created as empty placeholders; see
 
 Each observation retains its source identifier, event time and received time.
 Every fact, hypothesis and contradiction links back to existing observations.
-Stage 02 validates reference resolution, not semantic truth: a known reference
+The domain validates reference resolution, not semantic truth: a known reference
 alone does not establish that an arbitrary external claim follows from it.
-Normalized bounded input and reporting missing, stale or truncated collection
-data are later-stage responsibilities.
+Stage 03 adds bounded input and explicit gaps/truncation reporting. It does not
+independently establish collector completeness or detect all stale evidence.
 
-Before external collection, input limits and redaction will bound size, time
-range and output volume. Secrets and personal data in logs must be considered
-before persistence or model calls. Redaction will have explicit supported
-patterns and tests; it will not be presented as a guarantee that arbitrary logs
-contain no secrets.
+Before live collection, Stage 03 limits local input size, record counts, incident
+duration and retained text. Redaction supports documented key assignments,
+Bearer credentials, URL userinfo, recognizable token shapes and ASCII emails.
+It has tests and explicit exclusions, including arbitrary names, IP addresses,
+encoded or unknown secrets. This filter does not guarantee arbitrary logs are
+safe for persistence or model calls. The examples remain fictional.
 
 The model will receive only allowlisted read-only tools with validated arguments.
 It may propose an evidence-linked hypothesis or a further diagnostic check.
@@ -144,6 +162,7 @@ and the detailed [CI/CD guide](CI_CD.md).
 
 ## Next steps
 
-Stage 03 adds bounded local input, normalization, redaction and an offline CLI
-report over the existing domain. The [roadmap](ROADMAP.md) lists the following
+Stage 04 adds a separate disposable Docker laboratory and restricted observation
+collector. Daemon privileges need their own boundary; the local file adapter
+does not establish Docker safety. The [roadmap](ROADMAP.md) lists the following
 stages and their completion criteria.
