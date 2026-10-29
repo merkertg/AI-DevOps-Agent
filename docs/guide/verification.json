@@ -100,13 +100,18 @@
     }
   },
   "publication": {
-    "status": "pending",
+    "status": "pushed",
     "branch": "main",
-    "remote_base_verified": "7c5f41da0653d4288adef9c93008d1a3f761549f"
+    "commit_sha": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
+    "remote_sha_verified": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
+    "method": "git push origin main followed by git ls-remote origin refs/heads/main",
+    "remote_base_verified": "7c5f41da0653d4288adef9c93008d1a3f761549f",
+    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 03 implementation."
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "No hosted workflow result observed for the Stage 03 commit; recheck after push."
+    "checked_commit": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
+    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned Not Found for this commit's workflow runs; no hosted workflow result was observed."
   },
   "limitations": [
     "Input is one bounded regular UTF-8 JSON fixture; arbitrary plain-text log formats are unsupported.",
