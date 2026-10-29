@@ -70,3 +70,6 @@ and the read-only `list`, `show`, `verify` commands. They add no HTTP route.
 
 The Stage 06 agent is also a CLI, `python -m app.agent ID --store PATH`; see the
 [bounded investigation agent](bounded-agent.md). It adds no HTTP route.
+
+Stage 07 telemetry options (`--prometheus`, `--metrics-file`, `--traces`) are
+CLI features too; see [telemetry](telemetry.md).

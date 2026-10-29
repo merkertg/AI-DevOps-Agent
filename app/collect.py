@@ -8,9 +8,11 @@ from datetime import datetime
 from app.cli_support import (
     SafeArgumentParser,
     add_history_and_store_options,
+    add_telemetry_options,
     finish,
     utc_now,
     with_deployment_history,
+    with_telemetry,
 )
 from app.infrastructure.deployments import HistoryError
 from app.infrastructure.docker_engine import (
@@ -20,12 +22,13 @@ from app.infrastructure.docker_engine import (
 )
 from app.infrastructure.docker_lab import (
     DEFAULT_COLLECTION_LIMITS,
-    STAGE04_LAB,
+    LABS,
     CollectionError,
     collect_lab,
     select_targets,
 )
 from app.infrastructure.sqlite_store import StoreError
+from app.infrastructure.telemetry import TelemetryError
 
 
 def main(
@@ -39,10 +42,16 @@ def main(
     parser = SafeArgumentParser(
         prog="python -m app.collect",
         description=(
-            "Read state and bounded logs of allowlisted Stage 04 lab containers "
-            "through the local Docker socket. Only GET reads are sent."
+            "Read state and bounded logs of allowlisted lab containers through "
+            "the local Docker socket. Only GET reads are sent."
         ),
         allow_abbrev=False,
+    )
+    parser.add_argument(
+        "--lab",
+        choices=sorted(LABS),
+        default="stage04",
+        help="Allowlisted lab to read (default stage04)",
     )
     parser.add_argument(
         "--minutes",
@@ -64,9 +73,11 @@ def main(
         help="Unix socket path; defaults to DOCKER_HOST or the usual locations",
     )
     add_history_and_store_options(parser)
+    add_telemetry_options(parser)
     arguments = parser.parse_args(argv)
     try:
-        targets = select_targets(STAGE04_LAB, arguments.container, limits)
+        scope = LABS[arguments.lab]
+        targets = select_targets(scope, arguments.container, limits)
         socket_path = resolve_socket_path(
             arguments.docker_socket, os.environ if environ is None else environ
         )
@@ -84,11 +95,21 @@ def main(
             window_minutes=arguments.minutes,
             requested=targets,
             incident_id=arguments.incident_id,
+            scope=scope,
             limits=limits,
         )
         prepared = with_deployment_history(prepared, arguments.repository)
+        prepared = with_telemetry(
+            prepared, arguments.prometheus, arguments.metrics_file, arguments.traces
+        )
         document = finish(prepared, arguments.store, collected_at)
-    except (CollectionError, DockerError, HistoryError, StoreError) as error:
+    except (
+        CollectionError,
+        DockerError,
+        HistoryError,
+        StoreError,
+        TelemetryError,
+    ) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     sys.stdout.write(document)

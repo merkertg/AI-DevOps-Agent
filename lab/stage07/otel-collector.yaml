@@ -1,0 +1,17 @@
+# Receive OTLP/HTTP spans from the lab service and write them as JSON lines.
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+exporters:
+  file:
+    path: /export/traces.jsonl
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [file]
+  telemetry:
+    metrics:
+      level: none

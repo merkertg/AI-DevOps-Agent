@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import NoReturn
 
 from app import __version__
-from app.application.inputs import PreparedInput, add_deployment_evidence
+from app.application.inputs import (
+    PreparedInput,
+    add_deployment_evidence,
+    add_telemetry_evidence,
+)
 from app.application.records import (
     INVESTIGATION_ID,
     InvestigationRecord,
@@ -24,7 +28,16 @@ from app.infrastructure.deployments import (
     TagListing,
     collect_deployments,
 )
+from app.infrastructure.otlp_traces import OtlpFileReader
+from app.infrastructure.prometheus import PrometheusClient, RecordedPrometheus
 from app.infrastructure.sqlite_store import SqliteInvestigationStore, StoreError
+from app.infrastructure.telemetry import (
+    DEFAULT_TELEMETRY_LIMITS,
+    STAGE07_TELEMETRY,
+    MetricsReader,
+    TelemetryError,
+    collect_telemetry,
+)
 
 
 class SafeArgumentParser(argparse.ArgumentParser):
@@ -66,6 +79,58 @@ def add_history_and_store_options(parser: argparse.ArgumentParser) -> None:
         metavar="PATH",
         help="SQLite file to save the investigation in; prints a receipt",
     )
+
+
+def add_telemetry_options(parser: argparse.ArgumentParser) -> None:
+    """Add optional metrics and trace inputs to one CLI."""
+    metrics = parser.add_mutually_exclusive_group()
+    metrics.add_argument(
+        "--prometheus",
+        metavar="URL",
+        help="Loopback Prometheus for allowlisted queries, e.g. http://127.0.0.1:19090",
+    )
+    metrics.add_argument(
+        "--metrics-file",
+        type=Path,
+        metavar="PATH",
+        help="Recorded Prometheus responses for the allowlisted queries",
+    )
+    parser.add_argument(
+        "--traces",
+        type=Path,
+        metavar="PATH",
+        help="OTLP JSON lines trace export of the lab collector",
+    )
+
+
+def with_telemetry(
+    prepared: PreparedInput,
+    prometheus: str | None,
+    metrics_file: Path | None,
+    traces: Path | None,
+) -> PreparedInput:
+    """Add allowlisted metrics and trace evidence when any source is given."""
+    if prometheus is None and metrics_file is None and traces is None:
+        return prepared
+    limits = DEFAULT_TELEMETRY_LIMITS
+    metrics: MetricsReader | None = None
+    if prometheus is not None:
+        allowed = frozenset(query.expression for query in STAGE07_TELEMETRY.queries)
+        metrics = PrometheusClient(prometheus, allowed, limits)
+    elif metrics_file is not None:
+        metrics = RecordedPrometheus(metrics_file, limits)
+    evidence = collect_telemetry(
+        prepared.incident,
+        metrics=metrics,
+        traces=OtlpFileReader(traces) if traces is not None else None,
+        limits=limits,
+    )
+    try:
+        return add_telemetry_evidence(prepared, evidence)
+    except ValueError:
+        raise TelemetryError(
+            "Telemetry conflicts with the input's sources or scope."
+        ) from None
 
 
 def json_document(value: object) -> str:

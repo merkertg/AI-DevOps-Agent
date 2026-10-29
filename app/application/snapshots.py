@@ -33,52 +33,62 @@ def _canonical(value: object) -> str:
     )
 
 
+def _encoded_observation(event: Observation) -> dict[str, object]:
+    """Write one observation; a trace ID appears only when it is known."""
+    item: dict[str, object] = {
+        "observation_id": event.observation_id,
+        "source_id": event.source_id,
+        "event_time": event.event_time.isoformat(),
+        "received_at": event.received_at.isoformat(),
+        "kind": event.kind.value,
+        "message": event.message,
+        "exit_code": event.exit_code,
+    }
+    if event.trace_id is not None:
+        item["trace_id"] = event.trace_id
+    return item
+
+
 def encode_input(prepared: PreparedInput) -> str:
-    """Write every field that report generation reads, in a canonical order."""
+    """Write every field that report generation reads, in a canonical order.
+
+    Fields added in Stage 07 (observation trace IDs and the telemetry list)
+    are written only when present, so earlier documents keep their bytes.
+    """
     incident = prepared.incident
     snapshot = Investigation(incident, prepared.sources, prepared.observations)
-    return _canonical(
-        {
-            "document": INPUT_DOCUMENT,
-            "version": INPUT_VERSION,
-            "origin": prepared.origin,
-            "history_repository": prepared.history_repository,
-            "incident": {
-                "incident_id": incident.incident_id,
-                "service": incident.service,
-                "starts_at": incident.starts_at.isoformat(),
-                "ends_at": incident.ends_at.isoformat(),
-            },
-            "sources": [
-                {
-                    "source_id": source.source_id,
-                    "service": source.service,
-                    "kind": source.kind.value,
-                }
-                for source in snapshot.sources
-            ],
-            "observations": [
-                {
-                    "observation_id": event.observation_id,
-                    "source_id": event.source_id,
-                    "event_time": event.event_time.isoformat(),
-                    "received_at": event.received_at.isoformat(),
-                    "kind": event.kind.value,
-                    "message": event.message,
-                    "exit_code": event.exit_code,
-                }
-                for event in snapshot.timeline
-            ],
-            "collection": {
-                "declared_complete": prepared.declared_complete,
-                "declared_truncated": prepared.declared_truncated,
-                "gaps": list(prepared.gaps),
-                "truncated_observation_ids": sorted(prepared.truncated_observation_ids),
-                "truncated_gap_count": prepared.truncated_gap_count,
-                "redaction_count": prepared.redaction_count,
-            },
-        }
-    )
+    document: dict[str, object] = {
+        "document": INPUT_DOCUMENT,
+        "version": INPUT_VERSION,
+        "origin": prepared.origin,
+        "history_repository": prepared.history_repository,
+        "incident": {
+            "incident_id": incident.incident_id,
+            "service": incident.service,
+            "starts_at": incident.starts_at.isoformat(),
+            "ends_at": incident.ends_at.isoformat(),
+        },
+        "sources": [
+            {
+                "source_id": source.source_id,
+                "service": source.service,
+                "kind": source.kind.value,
+            }
+            for source in snapshot.sources
+        ],
+        "observations": [_encoded_observation(event) for event in snapshot.timeline],
+        "collection": {
+            "declared_complete": prepared.declared_complete,
+            "declared_truncated": prepared.declared_truncated,
+            "gaps": list(prepared.gaps),
+            "truncated_observation_ids": sorted(prepared.truncated_observation_ids),
+            "truncated_gap_count": prepared.truncated_gap_count,
+            "redaction_count": prepared.redaction_count,
+        },
+    }
+    if prepared.telemetry:
+        document["telemetry"] = list(prepared.telemetry)
+    return _canonical(document)
 
 
 def _unique(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -96,9 +106,11 @@ def _no_float(value: str) -> NoReturn:
     raise SnapshotError("Stored input contains a non-integer number.")
 
 
-def _fields(value: object, names: set[str]) -> dict[str, object]:
-    """Require a JSON object with exactly the documented keys."""
-    if not isinstance(value, dict) or value.keys() != names:
+def _fields(
+    value: object, names: set[str], optional: frozenset[str] = frozenset()
+) -> dict[str, object]:
+    """Require a JSON object with the documented keys and allowed optional ones."""
+    if not isinstance(value, dict) or not names <= value.keys() <= names | optional:
         raise SnapshotError("Stored input has missing or unsupported fields.")
     return cast(dict[str, object], value)
 
@@ -167,8 +179,10 @@ def _observation(value: object) -> Observation:
             "message",
             "exit_code",
         },
+        frozenset({"trace_id"}),
     )
     exit_code = item["exit_code"]
+    trace_id = item.get("trace_id")
     return Observation(
         _text(item["observation_id"]),
         _text(item["source_id"]),
@@ -177,6 +191,7 @@ def _observation(value: object) -> Observation:
         ObservationKind(_text(item["kind"])),
         message=_text(item["message"]),
         exit_code=None if exit_code is None else _integer(exit_code),
+        trace_id=None if trace_id is None else _text(trace_id),
     )
 
 
@@ -194,6 +209,7 @@ def _decode(payload: object) -> PreparedInput:
             "observations",
             "collection",
         },
+        frozenset({"telemetry"}),
     )
     if item["document"] != INPUT_DOCUMENT or _integer(item["version"]) != (
         INPUT_VERSION
@@ -248,6 +264,7 @@ def _decode(payload: object) -> PreparedInput:
         redaction_count=_count(collection["redaction_count"]),
         origin=_origin(item["origin"]),
         history_repository=None if history is None else _text(history),
+        telemetry=tuple(_text(kind) for kind in _items(item.get("telemetry", []))),
     )
 
 

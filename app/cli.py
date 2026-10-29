@@ -8,13 +8,16 @@ from pathlib import Path
 from app.cli_support import (
     SafeArgumentParser,
     add_history_and_store_options,
+    add_telemetry_options,
     finish,
     utc_now,
     with_deployment_history,
+    with_telemetry,
 )
 from app.infrastructure.deployments import HistoryError
 from app.infrastructure.fixtures import FixtureError, load_fixture
 from app.infrastructure.sqlite_store import StoreError
+from app.infrastructure.telemetry import TelemetryError
 
 
 def main(
@@ -33,13 +36,17 @@ def main(
         "fixture", type=Path, metavar="FIXTURE", help="Regular UTF-8 JSON fixture file"
     )
     add_history_and_store_options(parser)
+    add_telemetry_options(parser)
     arguments = parser.parse_args(argv)
     try:
         prepared = with_deployment_history(
             load_fixture(arguments.fixture), arguments.repository
         )
+        prepared = with_telemetry(
+            prepared, arguments.prometheus, arguments.metrics_file, arguments.traces
+        )
         document = finish(prepared, arguments.store, clock())
-    except (FixtureError, HistoryError, StoreError) as error:
+    except (FixtureError, HistoryError, StoreError, TelemetryError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     sys.stdout.write(document)

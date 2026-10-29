@@ -39,6 +39,7 @@ recorded in [VERIFICATION.md](../VERIFICATION.md).
 
 | Option | Meaning |
 | --- | --- |
+| `--lab NAME` | Allowlisted lab: `stage04` (default) or `stage07` with telemetry |
 | `--minutes N` | Window ending at collection time, `1..1440`, default `30` |
 | `--container NAME` | Allowlisted container to read; repeatable; default all |
 | `--incident-id ID` | Report identifier slug; default `stage04-<UTC time>` |
@@ -108,3 +109,16 @@ not reduce the privileges of the Docker socket held by the process. Use the
 collector only on your own machine against this lab. It is not exposed to HTTP,
 an agent or a model. Run the [verification commands](testing.md); the Docker
 tests use a fake daemon on a Unix socket.
+
+## Stage 07 telemetry lab and macOS file sharing
+
+[Telemetry](telemetry.md) describes the second lab, `lab/stage07`, with
+Prometheus and an OpenTelemetry Collector. Its application container is
+`aidevops-lab07-api` with label `ai-devops-agent.lab=stage07`; read it with
+`--lab stage07`.
+
+Both labs bind-mount files from the repository. On macOS, Docker Desktop may be
+denied access to folders such as `~/Desktop` by system privacy settings; `up`
+then fails with `operation not permitted`. Grant Docker Desktop access in the
+system settings yourself, or run the lab from a copy outside the protected
+folder, keeping the same relative layout.

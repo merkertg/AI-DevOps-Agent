@@ -114,6 +114,24 @@ class OfflineRulesProvider:
             )
             if code == "connection_refused":
                 refusal = observations[0]
+        traced = [fact for fact in facts if fact["code"] == "same_trace"][:10]
+        if traced:
+            linked = [
+                item
+                for fact in traced
+                for item in cast(list[str], fact["observation_ids"])
+            ]
+            hypotheses.append(
+                {
+                    "statement": (
+                        "Log and trace records of the same requests agree on the "
+                        "failure; agreement between sources does not show why it "
+                        "failed."
+                    ),
+                    "fact_ids": [str(fact["id"]) for fact in traced],
+                    "observation_ids": list(dict.fromkeys(linked))[:20],
+                }
+            )
         missing = cast(list[str], quality.get("sources_without_observations", []))
         logs = [item for item in sources if item["kind"] == "application_log"]
         check: dict[str, object] | None

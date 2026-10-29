@@ -3,6 +3,7 @@
 import json
 from dataclasses import asdict
 from datetime import datetime
+from typing import cast
 
 from app.application.inputs import Origin, PreparedInput
 from app.domain import investigate
@@ -36,12 +37,35 @@ _ORIGIN_LIMITATIONS: dict[Origin, tuple[str, ...]] = {
         "field; they are reports, not independent proof.",
     ),
 }
+_TELEMETRY_LIMITATIONS = (
+    "Metrics come only from allowlisted Prometheus queries and traces from a "
+    "bounded OTLP export; they show symptoms, not causes.",
+    "Signals at the same time are correlated, not causally linked; source clocks "
+    "and collection delays can shift their order.",
+)
 _HISTORY_LIMITATIONS = (
     "Deployment records are annotated tags in the allowlisted lab repository; "
     "they are recorded claims, not proof of what ran.",
     "Only deployments recorded inside the incident window are included; commit "
     "time is never used as deployment time.",
 )
+
+
+def _scope_limitation(origin: Origin, history: bool, telemetry: bool) -> str:
+    """State which inputs were read; earlier wording stays unchanged."""
+    if not telemetry:
+        return _SCOPE_LIMITATIONS[(origin, history)]
+    first = (
+        "Docker state and logs were read once from allowlisted lab containers"
+        if origin == "docker_lab"
+        else "No live container was queried"
+    )
+    rest = (
+        "models were not queried"
+        if history
+        else ("deployment history and models were not queried")
+    )
+    return f"{first}; telemetry was read from the given sources; {rest}."
 
 
 def build_report(prepared: PreparedInput) -> dict[str, object]:
@@ -92,6 +116,11 @@ def build_report(prepared: PreparedInput) -> dict[str, object]:
     else:
         status = "unknown"
     report: dict[str, object] = asdict(investigation)
+    # Trace IDs appear only when known, so reports without telemetry keep
+    # the exact bytes they had before Stage 07.
+    for entry in cast(list[dict[str, object]], report["timeline"]):
+        if entry["trace_id"] is None:
+            del entry["trace_id"]
     report["schema_version"] = 1
     report["origin"] = prepared.origin
     report["data_quality"] = {
@@ -108,9 +137,10 @@ def build_report(prepared: PreparedInput) -> dict[str, object]:
     history_read = prepared.history_repository is not None
     report["limitations"] = [
         *_COMMON_LIMITATIONS,
-        _SCOPE_LIMITATIONS[(prepared.origin, history_read)],
+        _scope_limitation(prepared.origin, history_read, bool(prepared.telemetry)),
         *_ORIGIN_LIMITATIONS[prepared.origin],
         *(_HISTORY_LIMITATIONS if history_read else ()),
+        *(_TELEMETRY_LIMITATIONS if prepared.telemetry else ()),
     ]
     return report
 

@@ -1,0 +1,69 @@
+# Disposable Stage 07 lab: the fictional training API with metrics and traces.
+# No service mounts the Docker socket. Only Prometheus is published, on loopback.
+name: aidevops-lab07
+
+services:
+  training-api:
+    image: python:3.12.15-slim
+    container_name: aidevops-lab07-api
+    command: ["python", "/lab/telemetry_api.py"]
+    environment:
+      DEPENDENCY_HOST: 127.0.0.1
+      DEPENDENCY_PORT: "5432"
+      OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      METRICS_PORT: "9464"
+      ATTEMPTS: "6"
+      INTERVAL_SECONDS: "5"
+      PYTHONDONTWRITEBYTECODE: "1"
+    labels:
+      ai-devops-agent.lab: stage07
+    volumes:
+      - ./telemetry_api.py:/lab/telemetry_api.py:ro
+    networks: [lab]
+    depends_on: [otel-collector]
+    read_only: true
+    user: "65534:65534"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.161.0
+    container_name: aidevops-lab07-otel
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otelcol/config.yaml:ro
+      - ../../var/stage07/telemetry:/export
+    user: "${AIDEVOPS_LAB_UID:-10001}:${AIDEVOPS_LAB_GID:-10001}"
+    networks: [lab]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+
+  prometheus:
+    image: prom/prometheus:v3.15.0
+    container_name: aidevops-lab07-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "127.0.0.1:19090:9090"
+    networks: [lab, publish]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"
+
+networks:
+  # Lab traffic stays on an internal network without outside access.
+  lab:
+    internal: true
+  # Only Prometheus joins this network so its port can be published.
+  publish: {}
+
+volumes:
+  prometheus-data: {}

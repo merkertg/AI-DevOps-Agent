@@ -40,6 +40,12 @@ After saving an investigation, run the offline LangGraph agent on its ID as
 described in the [bounded investigation agent](bounded-agent.md). It needs no
 model, network or credentials.
 
+## Add metrics and traces
+
+The [telemetry](telemetry.md) instruction runs the offline example with recorded
+metrics and a trace export, and the optional Stage 07 lab with Prometheus and an
+OpenTelemetry Collector.
+
 ## Start the API
 
 ```bash

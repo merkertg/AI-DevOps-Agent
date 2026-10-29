@@ -25,6 +25,9 @@ app/
     deployments.py       # Allowlisted deployment metadata, time checks and evidence mapping
     git_history.py       # Read annotated Git objects through GitPython without writes
     sqlite_store.py      # Atomic append-only local store and read-only inspection
+    telemetry.py         # Allowlisted metric queries, limits and metric/span mapping
+    prometheus.py        # GET-only loopback query_range client and recorded responses
+    otlp_traces.py       # Bounded OTLP JSON lines trace export reader
   agent/
     contracts.py         # Limits, provider port and strict parsing of untrusted decisions
     tools.py             # Frozen investigation view and seven read-only, paged tools
@@ -38,11 +41,17 @@ app/
   investigations.py      # Read-only list, show and verify of saved investigations
 fixtures/stage03/         # Two fictional JSON examples: known signals and partial collection
 fixtures/stage05/         # Fictional failure after a recorded lab deployment
+fixtures/stage07/         # Fictional incident, recorded metrics and trace export
 lab/stage04/
   compose.yaml           # Disposable lab: one labeled service, no network, no Docker socket
   training_api.py        # Fictional process: structured refusal, then exit code 3
 lab/stage05/
   make_history.py        # Developer setup: create fictional repository or add lab tag
+lab/stage07/
+  compose.yaml           # Service, OpenTelemetry Collector and loopback-only Prometheus
+  telemetry_api.py       # Fictional process: logs with trace IDs, a counter and spans
+  prometheus.yml         # Scrape configuration for the lab service
+  otel-collector.yaml    # OTLP/HTTP receiver writing JSON lines to var/stage07/
 tests/
   conftest.py            # Clean APP_* environment, temporary working directory, fresh client
   test_config.py         # Defaults, validation, source precedence and settings cache
@@ -70,6 +79,11 @@ tests/
   test_agent_validation.py # Fact references, check catalog, redaction and missing data
   test_agent_graph.py    # Limits, provider errors, injections, determinism, no network
   test_agent_cli.py      # Saved-investigation runs, refusals and an unchanged store
+  telemetry_fakes.py     # Fake loopback Prometheus and in-memory telemetry readers
+  test_telemetry_evidence.py # Domain, metric/span mapping and correlation gaps
+  test_telemetry_readers.py  # Prometheus client, recorded metrics, OTLP reader
+  test_telemetry_cli.py  # CLIs with recorded, fake-live and missing telemetry
+  test_telemetry_lab.py  # Lab process without Docker and compose consistency
 scripts/
   check_docs.py          # Local Markdown link targets; external URLs are not requested
 docs/
@@ -82,6 +96,7 @@ docs/
   STAGE_04.md            # Docker lab, access boundary and collector guide in Russian
   STAGE_05.md            # SQLite records, verification and deployment history in Russian
   STAGE_06.md            # Bounded LangGraph agent, tools, limits and validation in Russian
+  STAGE_07.md            # Metrics, traces, correlation gaps and the telemetry lab in Russian
   ROADMAP.md             # Planned stages and completion criteria in Russian
   CI_CD.md               # CI and stage publication guide in Russian
   APPROACH.md            # Current design, boundaries and planned architecture
@@ -125,6 +140,11 @@ validate_answer() → JSON`. The graph composes application tools; the domain an
 application layers do not import LangGraph. See
 [bounded investigation agent](bounded-agent.md).
 
+Stage 07 extends either input path with `with_telemetry()`: `PrometheusClient`
+or `RecordedPrometheus` and `OtlpFileReader` → `collect_telemetry()` →
+`add_telemetry_evidence()` (`same_trace` facts and correlation gaps) → the same
+report, store and agent. See [telemetry](telemetry.md).
+
 ## Planned responsibilities
 
 Create new layers only when they own behavior:
@@ -132,10 +152,8 @@ Create new layers only when they own behavior:
 | Future location | First responsibility |
 | --- | --- |
 | Model adapter behind `AgentProvider` | Real language model with explicit settings |
-| Additional infrastructure adapters | Telemetry integration |
-| Further lab services | Telemetry and more controlled incidents (Stage 07) |
+| Further lab services | More controlled incidents for evaluations (Stage 08) |
 | Evaluation suite | Independent incident labels and quality thresholds |
 
-These locations are design directions, not implemented directories. The original
-stack continues as planned: Prometheus and OpenTelemetry for correlation. See the
+These locations are design directions, not implemented directories. See the
 [roadmap](../ROADMAP.md) for their order and completion criteria.

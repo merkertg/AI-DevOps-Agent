@@ -40,7 +40,7 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.ruff.lint.isort]
 # Shared offline test helpers import as local modules from tests/.
-known-local-folder = ["agent_support", "docker_fake", "git_lab"]
+known-local-folder = ["agent_support", "docker_fake", "git_lab", "telemetry_fakes"]
 
 [tool.mypy]
 strict = true

@@ -169,7 +169,7 @@ def _observation(value: object, limits: InputLimits) -> tuple[Observation, int, 
     item = _object(
         value,
         {"observation_id", "source_id", "event_time", "received_at", "kind"},
-        {"message", "exit_code"},
+        {"message", "exit_code", "trace_id"},
     )
     message, redactions, truncated = _sanitize(
         item.get("message", ""), limits.max_message_chars
@@ -177,6 +177,7 @@ def _observation(value: object, limits: InputLimits) -> tuple[Observation, int, 
     exit_code = item.get("exit_code")
     if exit_code is not None and type(exit_code) is not int:
         raise FixtureError("Exit codes must be integers or omitted.")
+    trace_id = item.get("trace_id")
     observation = Observation(
         _identifier(item["observation_id"]),
         _identifier(item["source_id"]),
@@ -185,6 +186,7 @@ def _observation(value: object, limits: InputLimits) -> tuple[Observation, int, 
         ObservationKind(_text(item["kind"])),
         message=message,
         exit_code=exit_code,
+        trace_id=None if trace_id is None else _text(trace_id),
     )
     return observation, redactions, truncated
 

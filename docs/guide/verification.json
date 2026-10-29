@@ -1,47 +1,41 @@
 {
   "checked_on": "2026-10-29",
-  "stage": "06",
-  "scope": "Bounded LangGraph investigation agent over one saved, verified investigation with seven read-only tools, code-enforced limits, strict decision parsing, fact-reference validation and a deterministic offline provider",
-  "base_commit": "4513fcad893c86f9a63f5a83dc92dc6d82a8ca3c",
+  "stage": "07",
+  "scope": "Allowlisted Prometheus range queries, a bounded OpenTelemetry trace export and trace-ID correlation with logs, with missing trace IDs, missing traces, clock skew and stale or unavailable metrics reported as gaps; disposable telemetry lab",
+  "base_commit": "ef32e226d2fd7a9b34534af2d3be8fb9a5daf8f4",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
     "uv": "0.12.23",
-    "langgraph": "1.2.14",
-    "langchain_core": "1.6.9",
-    "langsmith": "0.14.5"
+    "docker": "Docker Desktop 29.8.2 (aarch64)",
+    "images": [
+      "python:3.12.15-slim",
+      "prom/prometheus:v3.15.0",
+      "otel/opentelemetry-collector-contrib:0.161.0"
+    ]
   },
-  "provider": {
-    "name": "offline-rules-v1",
-    "language_model_called": false,
-    "real_model_adapter": "not_implemented",
-    "reason": "The user chose an offline-only provider for this stage; a real adapter is a later, separate step."
+  "telemetry_scope": {
+    "service": "training-api",
+    "queries": {
+      "dependency_failures": "increase(training_api_dependency_failures_total{job=\"training-api\"}[1m])",
+      "target_down": "1 - up{job=\"training-api\"}"
+    },
+    "allowed_request": "GET /api/v1/query_range on a loopback http://host:port",
+    "trace_input": "OTLP JSON lines file of the lab collector",
+    "skew_tolerance_seconds": 1,
+    "stale_after_seconds": 60
   },
-  "agent_limits": {
-    "max_steps": 12,
-    "max_tool_calls": 8,
-    "max_seconds": 30,
-    "max_tool_result_chars": 8000,
-    "max_hypotheses": 5,
-    "max_text_chars": 600,
-    "max_notes": 5
+  "telemetry_limits": {
+    "max_points": 500,
+    "max_response_bytes": 1048576,
+    "timeout_seconds": 5,
+    "max_signals_per_query": 20,
+    "max_trace_bytes": 4194304,
+    "max_trace_lines": 10000,
+    "max_spans": 2000,
+    "max_error_spans": 200,
+    "max_message_chars": 2048
   },
-  "tools": [
-    "get_overview",
-    "list_sources",
-    "get_timeline",
-    "get_observation",
-    "list_facts",
-    "list_rule_findings",
-    "get_data_quality"
-  ],
-  "check_catalog": [
-    "review_dependency_endpoint",
-    "compare_deployed_revision",
-    "inspect_container_state",
-    "widen_log_window",
-    "collect_missing_source"
-  ],
   "local_checks": {
     "locked_sync": {
       "status": "passed",
@@ -49,123 +43,289 @@
       "installed_packages": 59
     },
     "lock_check_offline": "passed",
-    "dependencies_changed": {
-      "intentional": true,
-      "added_direct": {
-        "langgraph": "1.2.14"
-      },
-      "new_lock_packages": 26,
-      "unrelated_dependency_versions_changed": false
-    },
+    "dependencies_changed": false,
     "ruff_check": "passed",
     "ruff_format": {
       "status": "passed",
-      "formatted_files": 88
+      "formatted_files": 100
     },
     "mypy": {
       "status": "passed",
-      "source_files": 57,
+      "source_files": 65,
       "command": "uv run --locked mypy app tests scripts"
+    },
+    "mypy_with_labs": {
+      "status": "passed",
+      "source_files": 67,
+      "command": "uv run --locked mypy app tests scripts lab/stage05 lab/stage07"
     },
     "pytest": {
       "status": "passed",
-      "passed": 632,
+      "passed": 712,
       "skipped": 0,
-      "previous_cases": 519,
-      "stage_06_cases": 113,
-      "decision_cases": 37,
-      "tool_cases": 25,
-      "validation_cases": 21,
-      "graph_cases": 19,
-      "agent_cli_cases": 11,
-      "language_model_contacted": false
+      "previous_cases": 632,
+      "stage_07_cases": 80,
+      "evidence_cases": 34,
+      "reader_cases": 34,
+      "cli_cases": 9,
+      "lab_cases": 3,
+      "real_docker_or_prometheus_contacted": false
     },
-    "agent_cli_smoke": {
+    "offline_fixture": {
       "status": "passed",
-      "investigation_id": "inv-a47dc67a151ae94c6a4348d1",
-      "agent_status": "answered",
-      "steps": 6,
-      "tool_calls": 5,
-      "hypothesis_fact_ids": [
-        [
-          "fact-001",
-          "fact-002"
-        ],
-        [
-          "fact-002"
-        ],
-        [
-          "fact-003"
-        ]
+      "observations": 13,
+      "same_trace_facts": 3,
+      "trace_error_facts": 3,
+      "metric_signal_facts": 2,
+      "quality": "partial",
+      "gaps": [
+        "Metric dependency_failures has no samples in the last 525 s of the window; collection may be delayed or the target stopped reporting."
       ],
-      "next_check": "compare_deployed_revision",
-      "rejected_hypotheses": 0,
-      "insufficient_data": 0,
-      "byte_identical_reruns": true,
-      "store_sha256_unchanged": true,
-      "unknown_id_exit_code": 2
-    },
-    "boundary_tests": {
-      "step_and_time_limits": "passed",
-      "tool_call_budget_refusal": "passed",
-      "provider_errors_without_details": "passed",
-      "mutating_tool_requests_refused": "passed",
-      "instruction_like_log_text_inert": "passed",
-      "invented_references_rejected": "passed",
-      "non_catalog_checks_rejected": "passed",
-      "unverified_record_refused": "passed",
-      "no_network_with_tracing_variables": "passed"
+      "earlier_reports_unchanged": true
     },
     "purpose_docstrings": {
       "status": "passed",
-      "functions_and_classes": 134,
-      "new_or_modified_python_files": 15
+      "functions_and_classes": 246,
+      "new_or_modified_python_files": 21
     },
     "documentation_links": {
       "status": "passed",
-      "links": 315,
-      "markdown_files": 29
+      "links": 361,
+      "markdown_files": 32
     },
     "documentation_anchors": {
       "status": "passed",
       "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 320,
-      "markdown_files": 29,
+      "local_links": 366,
+      "markdown_files": 32,
       "broken_links": 0
     },
     "git_diff_check": "passed",
-    "live_docker_lab": {
-      "status": "not_run",
-      "reason": "Stage 06 adds no Docker behavior; live Docker was not started."
-    },
     "uvicorn_http_smoke": {
       "status": "not_run",
       "reason": "No HTTP behavior changed; existing health contracts passed in-process."
     }
   },
+  "live_lab": {
+    "status": "passed",
+    "lab": "stage07",
+    "first_attempt": "docker compose up from the repository under ~/Desktop pulled the images but failed: Docker Desktop could not create the bind-mount source path (operation not permitted, macOS privacy). Partial resources were removed; system settings were not changed.",
+    "run_location": "A copy of lab/stage07 in a temporary directory with the same relative layout",
+    "service_exit_code": 3,
+    "refusal_log_lines": 6,
+    "exported_span_lines": 6,
+    "prometheus_up_after_exit": "0",
+    "collection": {
+      "command": "python -m app.collect --lab stage07 --minutes 10 --prometheus http://127.0.0.1:19090 --traces <export>",
+      "exit_code": 0,
+      "observations": 20,
+      "connection_refused": 6,
+      "trace_error": 6,
+      "same_trace_facts": 6,
+      "metric_signals": 2,
+      "container_exit_code": 3,
+      "quality": "declared_complete",
+      "gaps": 0,
+      "clock_skew_gaps": 0
+    },
+    "saved_investigation": "inv-b90e2bcd0a0398e311310bb4",
+    "verify": "verified",
+    "agent": {
+      "status": "answered",
+      "steps": 6,
+      "tool_calls": 5,
+      "cites_same_trace": true,
+      "next_check": "review_dependency_endpoint"
+    },
+    "teardown": "docker compose down -v removed containers, networks and the Prometheus volume",
+    "note": "After the live run only a type annotation changed in telemetry_api.py; behavior is unchanged. The Stage 04 live lab remains not_run."
+  },
   "publication": {
-    "status": "pushed",
-    "branch": "main",
-    "commit_sha": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
-    "remote_sha_verified": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
-    "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
-    "remote_base_verified": "4513fcad893c86f9a63f5a83dc92dc6d82a8ca3c",
-    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 06 implementation."
+    "status": "pending",
+    "remote_base_verified": "ef32e226d2fd7a9b34534af2d3be8fb9a5daf8f4",
+    "note": "Push and remote CI are recorded in a follow-up documentation commit."
   },
   "remote_ci": {
     "status": "not_verified",
-    "checked_commit": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
-    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; no hosted workflow result was observed."
+    "reason": "Not yet published at the time of this record."
   },
   "limitations": [
-    "The offline provider follows fixed rules and is not a language model; a real model adapter and its live check are a later step.",
-    "Reference validation proves that cited facts and observations exist, not that a statement follows from them.",
-    "The time limit cannot interrupt a provider call that never returns; a network provider needs its own request timeout.",
-    "The agent is a CLI over one saved investigation; there is no HTTP API, telemetry or automatic repair.",
-    "Supported redaction patterns do not remove arbitrary secrets; only fictional evidence is used.",
-    "Live Docker and a new HTTP smoke were not run."
+    "Telemetry shows symptoms; correlation by trace ID or time does not establish a cause.",
+    "The one-second skew tolerance compares Docker receipt times with application span times; larger delays can hide or invent skew.",
+    "Metric staleness is measured at collection time, so a stopped process and a delayed scrape look alike.",
+    "The trace export file is not authenticated; it is trusted as the developer's own lab output.",
+    "On macOS, running the lab from ~/Desktop needs Docker Desktop access to that folder.",
+    "No investigation HTTP API, evaluations or real language model are implemented."
   ],
   "previous_checks": [
+    {
+      "checked_on": "2026-10-29",
+      "stage": "06",
+      "scope": "Bounded LangGraph investigation agent over one saved, verified investigation with seven read-only tools, code-enforced limits, strict decision parsing, fact-reference validation and a deterministic offline provider",
+      "base_commit": "4513fcad893c86f9a63f5a83dc92dc6d82a8ca3c",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23",
+        "langgraph": "1.2.14",
+        "langchain_core": "1.6.9",
+        "langsmith": "0.14.5"
+      },
+      "provider": {
+        "name": "offline-rules-v1",
+        "language_model_called": false,
+        "real_model_adapter": "not_implemented",
+        "reason": "The user chose an offline-only provider for this stage; a real adapter is a later, separate step."
+      },
+      "agent_limits": {
+        "max_steps": 12,
+        "max_tool_calls": 8,
+        "max_seconds": 30,
+        "max_tool_result_chars": 8000,
+        "max_hypotheses": 5,
+        "max_text_chars": 600,
+        "max_notes": 5
+      },
+      "tools": [
+        "get_overview",
+        "list_sources",
+        "get_timeline",
+        "get_observation",
+        "list_facts",
+        "list_rule_findings",
+        "get_data_quality"
+      ],
+      "check_catalog": [
+        "review_dependency_endpoint",
+        "compare_deployed_revision",
+        "inspect_container_state",
+        "widen_log_window",
+        "collect_missing_source"
+      ],
+      "local_checks": {
+        "locked_sync": {
+          "status": "passed",
+          "resolved_packages": 62,
+          "installed_packages": 59
+        },
+        "lock_check_offline": "passed",
+        "dependencies_changed": {
+          "intentional": true,
+          "added_direct": {
+            "langgraph": "1.2.14"
+          },
+          "new_lock_packages": 26,
+          "unrelated_dependency_versions_changed": false
+        },
+        "ruff_check": "passed",
+        "ruff_format": {
+          "status": "passed",
+          "formatted_files": 88
+        },
+        "mypy": {
+          "status": "passed",
+          "source_files": 57,
+          "command": "uv run --locked mypy app tests scripts"
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 632,
+          "skipped": 0,
+          "previous_cases": 519,
+          "stage_06_cases": 113,
+          "decision_cases": 37,
+          "tool_cases": 25,
+          "validation_cases": 21,
+          "graph_cases": 19,
+          "agent_cli_cases": 11,
+          "language_model_contacted": false
+        },
+        "agent_cli_smoke": {
+          "status": "passed",
+          "investigation_id": "inv-a47dc67a151ae94c6a4348d1",
+          "agent_status": "answered",
+          "steps": 6,
+          "tool_calls": 5,
+          "hypothesis_fact_ids": [
+            [
+              "fact-001",
+              "fact-002"
+            ],
+            [
+              "fact-002"
+            ],
+            [
+              "fact-003"
+            ]
+          ],
+          "next_check": "compare_deployed_revision",
+          "rejected_hypotheses": 0,
+          "insufficient_data": 0,
+          "byte_identical_reruns": true,
+          "store_sha256_unchanged": true,
+          "unknown_id_exit_code": 2
+        },
+        "boundary_tests": {
+          "step_and_time_limits": "passed",
+          "tool_call_budget_refusal": "passed",
+          "provider_errors_without_details": "passed",
+          "mutating_tool_requests_refused": "passed",
+          "instruction_like_log_text_inert": "passed",
+          "invented_references_rejected": "passed",
+          "non_catalog_checks_rejected": "passed",
+          "unverified_record_refused": "passed",
+          "no_network_with_tracing_variables": "passed"
+        },
+        "purpose_docstrings": {
+          "status": "passed",
+          "functions_and_classes": 134,
+          "new_or_modified_python_files": 15
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 315,
+          "markdown_files": 29
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 320,
+          "markdown_files": 29,
+          "broken_links": 0
+        },
+        "git_diff_check": "passed",
+        "live_docker_lab": {
+          "status": "not_run",
+          "reason": "Stage 06 adds no Docker behavior; live Docker was not started."
+        },
+        "uvicorn_http_smoke": {
+          "status": "not_run",
+          "reason": "No HTTP behavior changed; existing health contracts passed in-process."
+        }
+      },
+      "publication": {
+        "status": "pushed",
+        "branch": "main",
+        "commit_sha": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
+        "remote_sha_verified": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
+        "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
+        "remote_base_verified": "4513fcad893c86f9a63f5a83dc92dc6d82a8ca3c",
+        "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 06 implementation."
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "checked_commit": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
+        "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; no hosted workflow result was observed."
+      },
+      "limitations": [
+        "The offline provider follows fixed rules and is not a language model; a real model adapter and its live check are a later step.",
+        "Reference validation proves that cited facts and observations exist, not that a statement follows from them.",
+        "The time limit cannot interrupt a provider call that never returns; a network provider needs its own request timeout.",
+        "The agent is a CLI over one saved investigation; there is no HTTP API, telemetry or automatic repair.",
+        "Supported redaction patterns do not remove arbitrary secrets; only fictional evidence is used.",
+        "Live Docker and a new HTTP smoke were not run."
+      ]
+    },
     {
       "checked_on": "2026-10-29",
       "stage": "05",

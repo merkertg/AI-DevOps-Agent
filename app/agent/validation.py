@@ -32,6 +32,12 @@ CHECKS: dict[str, CheckKind] = {
         "observation",
         frozenset({ObservationKind.DEPLOYMENT.value}),
     ),
+    "review_trace": CheckKind(
+        "Open the cited failed span's trace in the tracing backend and review "
+        "where the request failed.",
+        "observation",
+        frozenset({ObservationKind.TRACE_ERROR.value}),
+    ),
     "inspect_container_state": CheckKind(
         "Read the current state and recent exits of the cited container source.",
         "source",

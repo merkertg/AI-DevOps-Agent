@@ -67,7 +67,8 @@ does not change what the offline provider does.
 | `tool_log` | Each request, its validated arguments and result status |
 
 Check kinds: `review_dependency_endpoint` (refused connection),
-`compare_deployed_revision` (deployment), `inspect_container_state` and
+`compare_deployed_revision` (deployment), `review_trace` (failed span, added in
+Stage 07), `inspect_container_state` and
 `widen_log_window` (sources of that kind), `collect_missing_source` (declared
 source without observations). No check is executed by the project.
 

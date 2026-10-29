@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stages 01–06
+## Current implementation: Stages 01–07
 
 Stage 01 contains a small FastAPI application:
 
@@ -141,6 +141,23 @@ deterministic `offline-rules-v1`; a real model adapter is a later step. See
 [ADR 0005](adr/0005-bounded-langgraph-agent.md) and the
 [bounded agent](instructions/bounded-agent.md).
 
+Stage 07 adds telemetry to either input path:
+
+```text
+loopback Prometheus (2 allowlisted range queries) ─┐
+OTLP JSON lines export (bounded, one service) ─────┼→ metric_signal / trace_error
+structured log lines with trace_id ────────────────┘            ↓
+             same_trace facts + gaps: no trace ID, missing trace, clock skew,
+             stale or unavailable metric → same report, store and agent
+```
+
+The disposable lab runs the service, an OpenTelemetry Collector and Prometheus
+on an internal network; only Prometheus is published on loopback. Recorded
+responses and exports make the same code reproducible offline. Correlation by
+trace ID or time is not stated as a cause. See
+[ADR 0006](adr/0006-allowlisted-telemetry.md) and
+[telemetry](instructions/telemetry.md).
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
@@ -157,7 +174,7 @@ deterministic `offline-rules-v1`; a real model adapter is a later step. See
 | SQLite (standard library) | Append-only local records, canonical input and reproduction checks | Implemented, Stage 05 |
 | LangGraph | Bounded investigation orchestration with an offline provider | Implemented, Stage 06 |
 | Language model adapter | Real provider behind the agent port | Planned, separate step |
-| Prometheus, OpenTelemetry | Telemetry correlation | Planned, Stage 07 |
+| Prometheus HTTP API (standard library), OTLP JSON export | Allowlisted metric queries, bounded trace reading and trace-ID correlation | Implemented, Stage 07 |
 
 Runtime dependencies for later stages are introduced with the corresponding
 implementation, rather than installed in anticipation.
@@ -170,7 +187,7 @@ Grow a modular monolith as behavior appears:
 | --- | --- | --- |
 | Domain | Incident scope, evidence references, timeline and deterministic findings | Stage 02 |
 | Application | Investigation use cases, input/output ports and report generation | Stage 03 |
-| Infrastructure | Bounded file adapters, Docker collection, persistence, Git and model adapters | Stages 03–06 |
+| Infrastructure | Bounded file adapters, Docker collection, persistence, Git and telemetry readers; model adapters later | Stages 03–07 |
 | Agent orchestration | Bounded LangGraph investigation over application tools | Stage 06 |
 | API | Validated requests and reports exposed through application use cases | Stage 08 |
 
@@ -235,6 +252,6 @@ and the detailed [CI/CD guide](CI_CD.md).
 ## Next steps
 
 A real model adapter can be added behind the Stage 06 provider port with its own
-settings, request timeout and separate live verification. Stage 07 adds
-Prometheus and OpenTelemetry to the lab. The [roadmap](ROADMAP.md) lists the
-following stages and their completion criteria.
+settings, request timeout and separate live verification. Stage 08 adds the
+investigation HTTP API, evaluations and container delivery. The
+[roadmap](ROADMAP.md) lists the following stages and their completion criteria.

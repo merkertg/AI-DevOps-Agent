@@ -42,17 +42,20 @@ Only the following fields are accepted:
 | Top level | `schema_version` (integer `1`), `incident`, `sources`, `observations` | `collection` |
 | `incident` | `incident_id`, `service`, `starts_at`, `ends_at` | — |
 | Each source | `source_id`, `service`, `kind` | — |
-| Each observation | `observation_id`, `source_id`, `event_time`, `received_at`, `kind` | `message` (default empty), `exit_code` |
+| Each observation | `observation_id`, `source_id`, `event_time`, `received_at`, `kind` | `message` (default empty), `exit_code`, `trace_id` |
 | `collection` | — | `complete` (boolean), `truncated` (boolean, default false), `gaps` (text array, default empty) |
 
 Missing `collection.complete` means unknown completeness. Identifiers and service
 names are trimmed ASCII slugs matching `[A-Za-z0-9][A-Za-z0-9_.-]{0,63}`;
 recognized sensitive metadata is rejected rather than echoed or rewritten.
 Times are trimmed ISO-8601 strings with explicit offsets and normalize to UTC.
-Source kinds are `application_log`, `container_state` or `deployment_history`;
-observation kinds are `connection_refused`, `container_exit`, `deployment` or
-`note`. Enum values must match exactly. A deployment requires a deployment-history
-source; a structured fixture record remains a producer claim.
+Source kinds are `application_log`, `container_state`, `deployment_history`,
+`metrics` or `traces`; observation kinds are `connection_refused`,
+`container_exit`, `deployment`, `metric_signal`, `trace_error` or `note`. Enum
+values must match exactly. A deployment requires a deployment-history source;
+a structured fixture record remains a producer claim. `trace_id` is a W3C trace
+ID (32 lowercase hex digits, not all zero); reports show it only when present.
+To add recorded metrics and a trace export, see [telemetry](telemetry.md).
 Exit codes are integers in `0..255`, excluding booleans, and only accompany exits.
 The [domain contract](incident-domain.md) enforces scope and source compatibility.
 

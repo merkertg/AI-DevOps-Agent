@@ -16,10 +16,30 @@ from app.domain.models import (
     Source,
 )
 
+# These kinds report a failure symptom; an exit counts only when nonzero.
+_FAILURE_KINDS = frozenset(
+    {
+        ObservationKind.CONNECTION_REFUSED,
+        ObservationKind.METRIC_SIGNAL,
+        ObservationKind.TRACE_ERROR,
+    }
+)
+_SIGNAL_FACTS = {
+    ObservationKind.METRIC_SIGNAL: (
+        "metric_threshold_exceeded",
+        "reports a metric above its allowlisted threshold.",
+    ),
+    ObservationKind.TRACE_ERROR: (
+        "trace_error_recorded",
+        "reports a span that ended with an error status.",
+    ),
+}
+MAX_TRACE_EVIDENCE = 10
+
 
 def _is_failure(observation: Observation, disputed: set[tuple[str, datetime]]) -> bool:
-    """Treat a refused connection or an undisputed nonzero exit as a failure signal."""
-    if observation.kind is ObservationKind.CONNECTION_REFUSED:
+    """Treat failure symptoms or an undisputed nonzero exit as a failure signal."""
+    if observation.kind in _FAILURE_KINDS:
         return True
     return (
         observation.kind is ObservationKind.CONTAINER_EXIT
@@ -42,6 +62,31 @@ def _deployment_hypothesis(deployment: Observation, failure: Observation) -> Hyp
             EvidenceReference(failure.observation_id),
         ),
     )
+
+
+def _trace_facts(timeline: tuple[Observation, ...]) -> list[Fact]:
+    """Link observations from different sources that carry the same trace ID."""
+    traces: dict[str, list[Observation]] = defaultdict(list)
+    for observation in timeline:
+        if observation.trace_id is not None:
+            traces[observation.trace_id].append(observation)
+    facts: list[Fact] = []
+    for trace_id, events in sorted(traces.items()):
+        if len({event.source_id for event in events}) < 2:
+            continue
+        cited = events[:MAX_TRACE_EVIDENCE]
+        facts.append(
+            Fact(
+                code="same_trace",
+                statement=(
+                    f"Observations {', '.join(e.observation_id for e in cited)} "
+                    f"share trace {trace_id}; they describe the same request. "
+                    "Agreement between sources does not establish a cause."
+                ),
+                evidence=tuple(EvidenceReference(e.observation_id) for e in cited),
+            )
+        )
+    return facts
 
 
 def investigate(
@@ -94,6 +139,15 @@ def investigate(
                 )
             )
             pending_deployment = observation
+        elif observation.kind in _SIGNAL_FACTS:
+            code, text = _SIGNAL_FACTS[observation.kind]
+            facts.append(
+                Fact(
+                    code=code,
+                    statement=f"Observation {observation.observation_id} {text}",
+                    evidence=evidence,
+                )
+            )
         elif observation.kind is ObservationKind.CONNECTION_REFUSED:
             facts.append(
                 Fact(
@@ -141,6 +195,7 @@ def investigate(
                         evidence=evidence,
                     )
                 )
+    facts += _trace_facts(snapshot.timeline)
     return Investigation(
         incident=incident,
         sources=snapshot.sources,

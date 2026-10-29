@@ -2,6 +2,7 @@
 
 from app.domain.investigation import investigate
 from app.domain.models import (
+    TRACE_ID,
     Contradiction,
     EvidenceReference,
     Fact,
@@ -15,6 +16,7 @@ from app.domain.models import (
 )
 
 __all__ = [
+    "TRACE_ID",
     "Contradiction",
     "EvidenceReference",
     "Fact",

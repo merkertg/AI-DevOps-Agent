@@ -8,6 +8,7 @@ from typing import Protocol
 
 from app.application.inputs import PreparedInput
 from app.domain import (
+    TRACE_ID,
     Incident,
     Investigation,
     Observation,
@@ -52,6 +53,9 @@ class LabScope:
 
 # Changing what the collector may read is a reviewed code change (ADR 0002).
 STAGE04_LAB = LabScope("stage04", "training-api", ("aidevops-lab04-api",))
+# Stage 07 adds metrics and traces; only its application container is read.
+STAGE07_LAB = LabScope("stage07", "training-api", ("aidevops-lab07-api",))
+LABS = {scope.lab: scope for scope in (STAGE04_LAB, STAGE07_LAB)}
 
 
 @dataclass(frozen=True, slots=True)
@@ -111,10 +115,10 @@ def select_targets(
     return targets
 
 
-def _signal(text: str) -> ObservationKind:
-    """Map only a whole-line JSON object's exact event field; other text is a note."""
+def _signal(text: str) -> tuple[ObservationKind, str | None]:
+    """Map a whole-line JSON object's exact event and trace_id fields only."""
     if not text.lstrip().startswith("{"):
-        return ObservationKind.NOTE
+        return ObservationKind.NOTE, None
 
     def unique(pairs: list[tuple[str, object]]) -> dict[str, object]:
         """Treat repeated keys as ambiguous instead of letting the last one win."""
@@ -125,13 +129,15 @@ def _signal(text: str) -> ObservationKind:
     try:
         value: object = json.loads(text, object_pairs_hook=unique)
     except (ValueError, RecursionError):
-        return ObservationKind.NOTE
+        return ObservationKind.NOTE, None
     if not isinstance(value, dict):
-        return ObservationKind.NOTE
+        return ObservationKind.NOTE, None
+    trace = value.get("trace_id")
+    trace_id = trace if isinstance(trace, str) and TRACE_ID.fullmatch(trace) else None
     event = value.get("event")
     if not isinstance(event, str):
-        return ObservationKind.NOTE
-    return _LOG_SIGNALS.get(event, ObservationKind.NOTE)
+        return ObservationKind.NOTE, trace_id
+    return _LOG_SIGNALS.get(event, ObservationKind.NOTE), trace_id
 
 
 def _state_observation(
@@ -287,14 +293,16 @@ def collect_lab(
             line_number += 1
             message, count, cut = sanitize_text(entry.text, limits.max_message_chars)
             observation_id = f"{log_source.source_id}-{line_number:04d}"
+            kind, trace_id = _signal(entry.text)
             observations.append(
                 Observation(
                     observation_id,
                     log_source.source_id,
                     entry.timestamp,
                     incident.ends_at,
-                    _signal(entry.text),
+                    kind,
                     message=message,
+                    trace_id=trace_id,
                 )
             )
             redactions += count

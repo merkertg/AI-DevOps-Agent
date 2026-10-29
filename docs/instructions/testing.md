@@ -89,6 +89,19 @@ network connections even with LangSmith tracing variables set.
 uv run --locked pytest tests/test_agent_contracts.py tests/test_agent_tools.py tests/test_agent_validation.py tests/test_agent_graph.py tests/test_agent_cli.py
 ```
 
+Stage 07 tests use a fake Prometheus HTTP server on loopback, an in-process OTLP
+receiver and the lab process started directly; no Docker or network is needed.
+They cover the allowlist and URL checks, response limits, the export reader,
+threshold runs, stale and unavailable metrics, missing trace IDs, missing
+traces, clock skew, unchanged earlier reports and compose consistency.
+
+```bash
+uv run --locked pytest tests/test_telemetry_evidence.py tests/test_telemetry_readers.py tests/test_telemetry_cli.py tests/test_telemetry_lab.py
+```
+
+A live run of the [telemetry lab](telemetry.md#live-lab) is a separate check
+recorded in [VERIFICATION.md](../VERIFICATION.md).
+
 Ruff checks common errors and imports; its format check does not modify files.
 Strict mypy checks annotated Python types. Pytest verifies behavior. The local
 documentation checker validates repository file targets; it does not establish

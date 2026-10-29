@@ -1,16 +1,19 @@
 """Represent bounded incident evidence with immutable, standard-library models."""
 
+import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 
 
 class SourceKind(StrEnum):
-    """Distinguish application logs, container state and recorded deployments."""
+    """Distinguish logs, container state, deployments, metrics and traces."""
 
     APPLICATION_LOG = "application_log"
     CONTAINER_STATE = "container_state"
     DEPLOYMENT_HISTORY = "deployment_history"
+    METRICS = "metrics"
+    TRACES = "traces"
 
 
 class ObservationKind(StrEnum):
@@ -19,6 +22,8 @@ class ObservationKind(StrEnum):
     CONNECTION_REFUSED = "connection_refused"
     CONTAINER_EXIT = "container_exit"
     DEPLOYMENT = "deployment"
+    METRIC_SIGNAL = "metric_signal"
+    TRACE_ERROR = "trace_error"
     NOTE = "note"
 
 
@@ -27,7 +32,11 @@ _SIGNAL_SOURCES = {
     ObservationKind.CONNECTION_REFUSED: SourceKind.APPLICATION_LOG,
     ObservationKind.CONTAINER_EXIT: SourceKind.CONTAINER_STATE,
     ObservationKind.DEPLOYMENT: SourceKind.DEPLOYMENT_HISTORY,
+    ObservationKind.METRIC_SIGNAL: SourceKind.METRICS,
+    ObservationKind.TRACE_ERROR: SourceKind.TRACES,
 }
+# W3C Trace Context: 32 lowercase hex digits, not all zeros.
+TRACE_ID = re.compile(r"(?!0{32})[0-9a-f]{32}\Z")
 
 
 def _require_text(value: str, name: str) -> None:
@@ -89,9 +98,10 @@ class Observation:
     kind: ObservationKind
     message: str = ""
     exit_code: int | None = None
+    trace_id: str | None = None
 
     def __post_init__(self) -> None:
-        """Validate event timing and permit exit codes only for container exits."""
+        """Validate timing, exit codes for container exits and trace IDs."""
         _require_text(self.observation_id, "observation_id")
         _require_text(self.source_id, "source_id")
         if not isinstance(self.kind, ObservationKind):
@@ -109,6 +119,10 @@ class Observation:
                 )
         elif self.exit_code is not None:
             raise ValueError("exit_code is allowed only for a container exit")
+        if self.trace_id is not None and (
+            not isinstance(self.trace_id, str) or not TRACE_ID.fullmatch(self.trace_id)
+        ):
+            raise ValueError("trace_id must be 32 lowercase hex digits, not all zero")
 
 
 @dataclass(frozen=True, slots=True)

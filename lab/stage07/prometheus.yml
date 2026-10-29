@@ -1,0 +1,8 @@
+# Scrape only the fictional training API on the internal lab network.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+scrape_configs:
+  - job_name: training-api
+    static_configs:
+      - targets: ["training-api:9464"]
