@@ -108,13 +108,18 @@
     "sandbox": "The initial restricted run could not bind fake Unix sockets/test port; the permitted complete run passed all 519 tests."
   },
   "publication": {
-    "status": "pending",
+    "status": "pushed",
     "branch": "main",
-    "remote_base_verified": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5"
+    "commit_sha": "05be6c0458d078106c01616aedaa30722fb73255",
+    "remote_sha_verified": "05be6c0458d078106c01616aedaa30722fb73255",
+    "method": "git fetch before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
+    "remote_base_verified": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5",
+    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 05 implementation."
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "No hosted workflow result has been observed for the Stage 05 commit; check after push."
+    "checked_commit": "05be6c0458d078106c01616aedaa30722fb73255",
+    "reason": "GitHub connector returned 404 for this commit status request; no hosted workflow result was observed."
   },
   "limitations": [
     "Hashes and append-only SQLite triggers detect consistency failures, not authenticated tamper resistance against a database owner.",
