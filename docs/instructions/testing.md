@@ -51,6 +51,20 @@ CLI subprocess tests run without site packages or web configuration. Invalid
 input must produce exit `2`, empty stdout and safe stderr. Both
 [fictional fixtures](../../fixtures/stage03/) are exercised through reporting.
 
+Stage 04 tests never contact a real Docker daemon. They start a fake Engine API
+server on a short Unix socket path under `/tmp` ([docker_fake.py](../../tests/docker_fake.py)),
+which records every request, and run the lab process locally against a closed
+port. Run the subset with:
+
+```bash
+uv run --locked pytest tests/test_docker_engine.py tests/test_docker_lab.py tests/test_collect_cli.py
+```
+
+They cover the request guard, client surface, log stream parsing, byte and time
+limits, missing or unavailable daemons, label checks, gaps, redaction, inert
+log text and reproducible reports. A live lab run is a separate check recorded
+in [VERIFICATION.md](../VERIFICATION.md).
+
 Ruff checks common errors and imports; its format check does not modify files.
 Strict mypy checks annotated Python types. Pytest verifies behavior. The local
 documentation checker validates repository file targets; it does not establish

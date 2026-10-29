@@ -95,7 +95,9 @@ fictional values.
 
 ## Read the report
 
-`timeline` contains sanitized observations. Each `facts`, `hypotheses` and
+`origin` is `fixture` for this CLI; the [Docker lab collector](docker-lab.md)
+produces `docker_lab` and adds its own limitations. `timeline` contains
+sanitized observations. Each `facts`, `hypotheses` and
 `contradictions` entry includes `evidence` references: locate the matching
 `observation_id` in the timeline. The report retains UTC event and received
 times, source metadata and structured signals.

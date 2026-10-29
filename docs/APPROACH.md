@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stages 01–03
+## Current implementation: Stages 01–04
 
 Stage 01 contains a small FastAPI application:
 
@@ -75,6 +75,26 @@ coverage and unknown circumstances. A complete flag is a producer declaration,
 not proof of complete collection. The CLI never echoes raw file/argument values
 in error diagnostics. See [offline investigation](instructions/offline-investigation.md).
 
+Stage 04 adds a disposable Docker lab and a host collector:
+
+```text
+lab container (label stage04) → Docker daemon → Unix socket
+                                                     ↓
+collect CLI → allowlist → guarded GET inspect/logs → selected fields + bounded logs
+                                                     ↓
+                    PreparedInput(origin="docker_lab") → same report
+```
+
+The allowlist is code. One guard permits only `GET` on the inspect and logs
+paths of allowlisted names with fixed query parameters. The collector requires
+the exact name and lab label, copies selected state fields and discards
+environment, mounts and command. Log lines become signals only through an exact
+structured `event` field; exits come only from Docker state. Missing containers,
+truncation and malformed or out-of-window lines become gaps. The guard protects
+against the collector's own mistakes; it does not reduce socket privileges, as
+recorded in [ADR 0002](adr/0002-docker-lab-collector-access.md). See
+[Docker lab and collector](instructions/docker-lab.md).
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
@@ -86,7 +106,7 @@ in error diagnostics. See [offline investigation](instructions/offline-investiga
 | Pydantic, pydantic-settings | Response contract and settings validation | Implemented |
 | pytest, Ruff, mypy | Behavior, style and strict type checks | Implemented |
 | GitHub Actions | Continuous integration | Configured; remote result in [verification](VERIFICATION.md) |
-| Docker | Disposable lab and restricted collector | Planned, Stage 04 |
+| Docker Engine API over a Unix socket (standard library) | Disposable lab and guarded read-only collector | Implemented, Stage 04 |
 | GitPython | Read-only deployment history | Planned, Stage 05 |
 | LangGraph | Bounded investigation orchestration | Planned, Stage 06 |
 | Prometheus, OpenTelemetry | Telemetry correlation | Planned, Stage 07 |
@@ -134,12 +154,15 @@ references. Log text is untrusted data, including text that looks like an
 instruction to the agent. Missing or conflicting evidence must remain visible.
 
 There will be no model tool for shell execution, container exec, restart,
-deployment, file modification or automatic repair. Docker access will be added
-through a deliberately restricted collector in a disposable lab. A read-only
+deployment, file modification or automatic repair. Stage 04 reads Docker through
+a host collector in a disposable lab, not through a model tool. A read-only
 application method alone is not a permission boundary for an unrestricted Docker
-socket. The adapter design must address the daemon access it actually receives;
-the [Docker Engine API](https://docs.docker.com/reference/api/engine/) exposes the
-underlying daemon operations.
+socket: the [Docker Engine API](https://docs.docker.com/reference/api/engine/)
+exposes every daemon operation to the socket holder. The collector's guard limits
+its own requests; the process still holds the developer's Docker rights. Shared
+or remote use needs daemon-side enforcement, per
+[ADR 0002](adr/0002-docker-lab-collector-access.md). The future agent will
+receive collected observations, not the Docker client.
 
 ## Verification and isolation
 
@@ -162,7 +185,7 @@ and the detailed [CI/CD guide](CI_CD.md).
 
 ## Next steps
 
-Stage 04 adds a separate disposable Docker laboratory and restricted observation
-collector. Daemon privileges need their own boundary; the local file adapter
-does not establish Docker safety. The [roadmap](ROADMAP.md) lists the following
-stages and their completion criteria.
+Stage 05 stores investigations with their normalized inputs and reads the
+deployment history of an allowed repository through GitPython without changing
+it. The [roadmap](ROADMAP.md) lists the following stages and their completion
+criteria.

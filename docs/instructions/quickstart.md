@@ -10,7 +10,8 @@ optionally change settings.
 - Python 3.12. The project accepts `>=3.12,<3.13`; `.python-version` selects 3.12.
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependency
   and environment management.
-- No `.env`, Docker, database or model key is needed for Stages 01–03.
+- No `.env`, Docker, database or model key is needed for the API, tests and
+  offline CLI. The optional [Docker lab](docker-lab.md) needs Docker Engine 25.0+.
 
 Run all commands from the project root, the directory containing `pyproject.toml`.
 

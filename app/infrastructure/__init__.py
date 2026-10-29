@@ -1,1 +1,1 @@
-"""Adapt bounded local fictional fixtures to the independent incident domain."""
+"""Adapt bounded fictional fixtures and lab Docker reads to the incident domain."""

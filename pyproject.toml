@@ -36,6 +36,10 @@ line-length = 88
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.isort]
+# Shared offline test doubles import as a local module from tests/.
+known-local-folder = ["docker_fake"]
+
 [tool.mypy]
 strict = true
 plugins = ["pydantic.mypy"]

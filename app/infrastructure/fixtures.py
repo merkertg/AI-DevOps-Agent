@@ -18,7 +18,7 @@ from app.domain import (
     Source,
     SourceKind,
 )
-from app.infrastructure.redaction import redact_text
+from app.infrastructure.redaction import redact_text, sanitize_text
 
 IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,63}\Z")
 
@@ -134,9 +134,8 @@ def _time(value: object) -> datetime:
 
 
 def _sanitize(value: object, limit: int) -> tuple[str, int, bool]:
-    """Remove supported sensitive values before applying the visible text bound."""
-    text, replacements = redact_text(_text(value))
-    return text[:limit], replacements, len(text) > limit
+    """Require fixture text, then redact it before applying the visible bound."""
+    return sanitize_text(_text(value), limit)
 
 
 def _incident(value: object, limits: InputLimits) -> Incident:

@@ -14,7 +14,8 @@ Checkout without persisted credentials + uv 0.12.23 + Python 3.12
 uv sync --locked → Ruff check → Ruff format --check → strict mypy → pytest → check_docs.py
 ```
 
-No database service, Docker daemon, LLM key or production secret is required.
+No database service, Docker daemon, LLM key or production secret is required;
+Stage 04 tests use a fake Docker daemon on a Unix socket inside the test process.
 The workflow token can only read repository contents, third-party actions are
 pinned to full commit SHAs, and a newer run for the same ref cancels the older
 one. The uv integration follows the official
@@ -43,7 +44,7 @@ have their own status.
 
 ## Delivery boundaries
 
-Stages 01–03 provide continuous integration configuration. Container building, image
+Stages 01–04 provide continuous integration configuration. Container building, image
 publication and deployment are not configured. Stage 08 will add container
 checks and a documented delivery path after the investigation workflow exists.
 Delivery of this project's code is separate from the agent's read-only access

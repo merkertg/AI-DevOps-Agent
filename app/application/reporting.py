@@ -4,8 +4,27 @@ import json
 from dataclasses import asdict
 from datetime import datetime
 
-from app.application.inputs import PreparedInput
+from app.application.inputs import Origin, PreparedInput
 from app.domain import investigate
+
+_COMMON_LIMITATIONS = (
+    "Collection completeness is a producer declaration, not independently verified.",
+    "Only documented redaction patterns are removed; arbitrary secrets may remain.",
+    "Structured signals and reference resolution do not prove a root cause.",
+)
+_ORIGIN_LIMITATIONS: dict[Origin, tuple[str, ...]] = {
+    "fixture": (
+        "No live infrastructure, deployment history, model or telemetry was queried.",
+    ),
+    "docker_lab": (
+        "Docker state and logs were read once from allowlisted lab containers; "
+        "deployment history, models and telemetry were not queried.",
+        "Log times are Docker daemon receipt times; Docker state shows only the "
+        "latest container exit.",
+        "Signals come from Docker state and the application's structured event "
+        "field; they are reports, not independent proof.",
+    ),
+}
 
 
 def build_report(prepared: PreparedInput) -> dict[str, object]:
@@ -57,6 +76,7 @@ def build_report(prepared: PreparedInput) -> dict[str, object]:
         status = "unknown"
     report: dict[str, object] = asdict(investigation)
     report["schema_version"] = 1
+    report["origin"] = prepared.origin
     report["data_quality"] = {
         "status": status,
         "declared_complete": prepared.declared_complete,
@@ -69,11 +89,8 @@ def build_report(prepared: PreparedInput) -> dict[str, object]:
     }
     report["unknowns"] = unknowns
     report["limitations"] = [
-        "Collection completeness is a producer declaration, "
-        "not independently verified.",
-        "Only documented redaction patterns are removed; arbitrary secrets may remain.",
-        "Structured signals and reference resolution do not prove a root cause.",
-        "No live infrastructure, deployment history, model or telemetry was queried.",
+        *_COMMON_LIMITATIONS,
+        *_ORIGIN_LIMITATIONS[prepared.origin],
     ]
     return report
 

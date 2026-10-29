@@ -101,3 +101,9 @@ def redact_text(text: str) -> tuple[str, int]:
         text, count = _apply_rule(text, pattern, replacement)
         total += count
     return text, total
+
+
+def sanitize_text(text: str, limit: int) -> tuple[str, int, bool]:
+    """Redact before applying a visible length bound so no secret is cut in half."""
+    redacted, replacements = redact_text(text)
+    return redacted[:limit], replacements, len(redacted) > limit

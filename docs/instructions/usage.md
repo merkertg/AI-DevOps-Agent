@@ -6,8 +6,9 @@ The Stage 01 health contract, available routes and configuration. Start the
 service with the [quickstart](quickstart.md) first.
 
 Stage 02 is available through the [Python incident domain](incident-domain.md);
-Stage 03 adds the [offline CLI](offline-investigation.md). Neither adds an HTTP
-investigation route; the routes below retain their Stage 01 contract.
+Stage 03 adds the [offline CLI](offline-investigation.md) and Stage 04 the
+[Docker lab collector](docker-lab.md). None adds an HTTP investigation route;
+the routes below retain their Stage 01 contract.
 
 ## Health check
 

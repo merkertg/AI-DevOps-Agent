@@ -1,0 +1,26 @@
+# Disposable Stage 04 lab: one fictional service that fails in a controlled way.
+# No service mounts the Docker socket. The collector runs on the host instead.
+name: aidevops-lab04
+
+services:
+  training-api:
+    image: python:3.12-slim
+    container_name: aidevops-lab04-api
+    command: ["python", "/lab/training_api.py"]
+    environment:
+      DEPENDENCY_HOST: 127.0.0.1
+      DEPENDENCY_PORT: "5432"
+      PYTHONDONTWRITEBYTECODE: "1"
+      # Fictional value: the collector must never copy container environment.
+      LAB_FICTIONAL_API_TOKEN: fictional-env-value-never-collected
+    labels:
+      ai-devops-agent.lab: stage04
+    volumes:
+      - ./training_api.py:/lab/training_api.py:ro
+    # Loopback only: nothing listens on the dependency port, so it is refused.
+    network_mode: none
+    read_only: true
+    user: "65534:65534"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: "no"

@@ -9,6 +9,8 @@ from fastapi.testclient import TestClient
 
 from app.config import get_settings
 
+from docker_fake import FakeDocker
+
 
 @pytest.fixture(autouse=True)
 def isolated_settings(
@@ -31,3 +33,13 @@ def client() -> Iterator[TestClient]:
 
     with TestClient(create_app()) as test_client:
         yield test_client
+
+
+@pytest.fixture
+def fake_docker() -> Iterator[FakeDocker]:
+    """Provide a fake Docker daemon on a Unix socket; no real Docker is contacted."""
+    daemon = FakeDocker()
+    try:
+        yield daemon
+    finally:
+        daemon.close()

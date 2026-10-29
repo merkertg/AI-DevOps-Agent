@@ -1,21 +1,39 @@
 {
   "checked_on": "2026-10-29",
-  "implemented_on": "2026-10-27",
-  "stage": "03",
-  "scope": "Bounded fictional UTF-8 JSON intake, normalization, supported redaction and deterministic offline CLI reporting",
-  "base_commit": "7c5f41da0653d4288adef9c93008d1a3f761549f",
+  "stage": "04",
+  "scope": "Disposable Docker lab with a controlled failure and a host collector that reads selected state and bounded logs of allowlisted containers through guarded GET requests",
+  "base_commit": "12166f989a39c69bdd72bf49b3e52acd0e806a29",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
-    "uv": "0.12.23"
+    "uv": "0.12.23",
+    "docker_cli": "29.8.2",
+    "docker_daemon": "not running"
   },
-  "input_limits": {
-    "max_input_bytes": 1048576,
-    "max_sources": 32,
-    "max_observations": 1000,
+  "collection_limits": {
+    "max_targets": 4,
+    "max_window_minutes": 1440,
+    "max_log_lines": 500,
+    "max_log_bytes": 1048576,
+    "max_inspect_bytes": 262144,
     "max_message_chars": 2048,
-    "max_incident_seconds": 86400,
-    "max_gaps": 32
+    "timeout_seconds": 5
+  },
+  "access_boundary": {
+    "decision": "docs/adr/0002-docker-lab-collector-access.md",
+    "allowed_requests": [
+      "GET /v1.44/containers/{name}/json",
+      "GET /v1.44/containers/{name}/logs?stdout&stderr&timestamps&since&until&tail"
+    ],
+    "allowlist": {
+      "lab": "stage04",
+      "service": "training-api",
+      "containers": [
+        "aidevops-lab04-api"
+      ]
+    },
+    "required_label": "ai-devops-agent.lab=stage04",
+    "socket_privileges_reduced": false
   },
   "local_checks": {
     "locked_sync": "passed",
@@ -24,103 +42,228 @@
     "ruff_check": "passed",
     "ruff_format": {
       "status": "passed",
-      "formatted_files": 41
+      "formatted_files": 52
     },
     "mypy": {
       "status": "passed",
-      "source_files": 22
+      "source_files": 29
     },
     "pytest": {
       "status": "passed",
-      "passed": 231,
+      "passed": 351,
       "skipped": 0,
-      "previous_cases": 94,
-      "stage_03_cases": 137,
-      "fixture_cases": 65,
-      "redaction_cases": 51,
-      "reporting_cases": 12,
-      "cli_cases": 9
+      "previous_cases": 231,
+      "stage_04_cases": 120,
+      "docker_engine_cases": 64,
+      "docker_lab_cases": 42,
+      "collect_cli_cases": 14,
+      "real_docker_contacted": false
     },
-    "stdlib_only_cli": {
+    "fake_daemon_collection": {
       "status": "passed",
-      "method": "Python -I -S subprocess executes app.cli beside invalid .env without site packages"
+      "method": "Real python -m app.collect process against a fake Engine API on a Unix socket",
+      "observations": 5,
+      "kinds": [
+        "note",
+        "note",
+        "note",
+        "connection_refused",
+        "container_exit"
+      ],
+      "facts": [
+        "connection_refused",
+        "container_exit_error"
+      ],
+      "hypotheses": 2,
+      "quality": "declared_complete",
+      "redaction_count": 1,
+      "fictional_env_and_token_absent": true,
+      "requests_seen": [
+        "GET .../aidevops-lab04-api/json",
+        "GET .../aidevops-lab04-api/logs"
+      ],
+      "byte_identical_with_fixed_clock": true
     },
-    "cli_examples": {
+    "lab_process_without_docker": {
       "status": "passed",
-      "connection_failure": {
-        "observations": 3,
-        "facts": 2,
-        "hypotheses": 2,
-        "contradictions": 0,
-        "quality": "declared_complete"
-      },
-      "partial_incident": {
-        "observations": 1,
-        "facts": 1,
-        "hypotheses": 1,
-        "quality": "partial",
-        "missing_sources": [
-          "api-container"
-        ]
-      },
-      "same_stdout_on_repeat": true,
-      "fictional_email_removed": true,
-      "documented_minimal_json": "passed; completeness unknown",
-      "malformed_file": "passed; exit 2, empty stdout, no path or traceback in stderr"
+      "exit_code": 3,
+      "final_event": "connection_refused"
     },
-    "independent_boundary_review": {
+    "stdlib_only_collector": {
       "status": "passed",
-      "checked_on": "2026-10-27",
-      "additional_scenarios": 19,
-      "remaining_blockers": 0
+      "method": "Python -I -S subprocess runs app.collect against the fake socket"
     },
+    "cli_without_running_docker": "passed; exit 2, daemon unavailable message, no path",
     "new_function_purpose_docstrings": {
       "status": "passed",
-      "method": "AST check of new modules and tests",
-      "modules": 11,
-      "definitions": 87,
+      "method": "AST check of new and changed modules and tests",
+      "modules": 12,
+      "definitions": 142,
       "missing": 0
     },
     "documentation_links": {
       "status": "passed",
-      "links": 175,
-      "markdown_files": 19
+      "links": 224,
+      "markdown_files": 22
     },
     "documentation_anchors": {
       "status": "passed",
       "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 180,
-      "markdown_files": 19,
+      "local_links": 229,
+      "markdown_files": 22,
       "broken_links": 0
     },
     "git_diff_check": "passed",
     "uvicorn_http_smoke": {
       "status": "not_run",
-      "reason": "Stage 03 changes only offline workflow; existing API passed in-process tests. Earlier real HTTP checks remain historical."
+      "reason": "Stage 04 adds no HTTP behavior; existing API passed in-process tests. Earlier real HTTP checks remain historical."
     }
   },
+  "live_lab": {
+    "status": "not_run",
+    "reason": "Docker Desktop was not running; docker version could not reach the daemon socket, so compose up, image pull and live collection were not performed."
+  },
   "publication": {
-    "status": "pushed",
+    "status": "pending",
     "branch": "main",
-    "commit_sha": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
-    "remote_sha_verified": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
-    "method": "git push origin main followed by git ls-remote origin refs/heads/main",
-    "remote_base_verified": "7c5f41da0653d4288adef9c93008d1a3f761549f",
-    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 03 implementation."
+    "remote_base_verified": "12166f989a39c69bdd72bf49b3e52acd0e806a29"
   },
   "remote_ci": {
     "status": "not_verified",
-    "checked_commit": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
-    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned Not Found for this commit's workflow runs; no hosted workflow result was observed."
+    "reason": "No hosted workflow result observed for the Stage 04 commit; recheck after push."
   },
   "limitations": [
-    "Input is one bounded regular UTF-8 JSON fixture; arbitrary plain-text log formats are unsupported.",
-    "Supported redaction patterns do not cover arbitrary names, IP addresses, encoded values or unknown secret formats.",
-    "Collection completeness is a producer declaration; root cause remains unconfirmed.",
-    "No investigation HTTP API, Docker collection, stored investigations, Git history, model, agent or telemetry integration.",
-    "Health remains liveness only."
+    "The request guard limits the collector's code; the process still holds the developer's Docker socket privileges.",
+    "Intended for a local lab only; TCP, TLS and SSH Docker hosts are refused; API 1.44 needs Docker Engine 25.0+.",
+    "Signals come from Docker state and the application's structured event field; log times are daemon receipt times.",
+    "Docker state shows only the latest exit; host and daemon clock skew can move lines across window edges.",
+    "Live lab behavior and compatibility with a specific Docker Engine version are not yet verified.",
+    "No investigation HTTP API, stored investigations, Git history, model, agent or telemetry integration."
   ],
   "previous_checks": [
+    {
+      "checked_on": "2026-10-29",
+      "implemented_on": "2026-10-27",
+      "stage": "03",
+      "scope": "Bounded fictional UTF-8 JSON intake, normalization, supported redaction and deterministic offline CLI reporting",
+      "base_commit": "7c5f41da0653d4288adef9c93008d1a3f761549f",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23"
+      },
+      "input_limits": {
+        "max_input_bytes": 1048576,
+        "max_sources": 32,
+        "max_observations": 1000,
+        "max_message_chars": 2048,
+        "max_incident_seconds": 86400,
+        "max_gaps": 32
+      },
+      "local_checks": {
+        "locked_sync": "passed",
+        "lock_check_offline": "passed",
+        "dependencies_changed": false,
+        "ruff_check": "passed",
+        "ruff_format": {
+          "status": "passed",
+          "formatted_files": 41
+        },
+        "mypy": {
+          "status": "passed",
+          "source_files": 22
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 231,
+          "skipped": 0,
+          "previous_cases": 94,
+          "stage_03_cases": 137,
+          "fixture_cases": 65,
+          "redaction_cases": 51,
+          "reporting_cases": 12,
+          "cli_cases": 9
+        },
+        "stdlib_only_cli": {
+          "status": "passed",
+          "method": "Python -I -S subprocess executes app.cli beside invalid .env without site packages"
+        },
+        "cli_examples": {
+          "status": "passed",
+          "connection_failure": {
+            "observations": 3,
+            "facts": 2,
+            "hypotheses": 2,
+            "contradictions": 0,
+            "quality": "declared_complete"
+          },
+          "partial_incident": {
+            "observations": 1,
+            "facts": 1,
+            "hypotheses": 1,
+            "quality": "partial",
+            "missing_sources": [
+              "api-container"
+            ]
+          },
+          "same_stdout_on_repeat": true,
+          "fictional_email_removed": true,
+          "documented_minimal_json": "passed; completeness unknown",
+          "malformed_file": "passed; exit 2, empty stdout, no path or traceback in stderr"
+        },
+        "independent_boundary_review": {
+          "status": "passed",
+          "checked_on": "2026-10-27",
+          "additional_scenarios": 19,
+          "remaining_blockers": 0
+        },
+        "new_function_purpose_docstrings": {
+          "status": "passed",
+          "method": "AST check of new modules and tests",
+          "modules": 11,
+          "definitions": 87,
+          "missing": 0
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 175,
+          "markdown_files": 19
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 180,
+          "markdown_files": 19,
+          "broken_links": 0
+        },
+        "git_diff_check": "passed",
+        "uvicorn_http_smoke": {
+          "status": "not_run",
+          "reason": "Stage 03 changes only offline workflow; existing API passed in-process tests. Earlier real HTTP checks remain historical."
+        }
+      },
+      "publication": {
+        "status": "pushed",
+        "branch": "main",
+        "commit_sha": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
+        "remote_sha_verified": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
+        "method": "git push origin main followed by git ls-remote origin refs/heads/main",
+        "remote_base_verified": "7c5f41da0653d4288adef9c93008d1a3f761549f",
+        "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 03 implementation."
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "checked_commit": "8587d654f1bf7d416511bb1bd758bd3bfbf4e52a",
+        "reason": "gh CLI is not installed and the unauthenticated GitHub API returned Not Found for this commit's workflow runs; no hosted workflow result was observed."
+      },
+      "limitations": [
+        "Input is one bounded regular UTF-8 JSON fixture; arbitrary plain-text log formats are unsupported.",
+        "Supported redaction patterns do not cover arbitrary names, IP addresses, encoded values or unknown secret formats.",
+        "Collection completeness is a producer declaration; root cause remains unconfirmed.",
+        "No investigation HTTP API, Docker collection, stored investigations, Git history, model, agent or telemetry integration.",
+        "Health remains liveness only."
+      ]
+    },
     {
       "checked_on": "2026-10-27",
       "stage": "02",

@@ -13,6 +13,6 @@ htmlcov/
 dist/
 build/
 *.egg-info/
-# Future local evidence, logs and generated incident reports are private by default.
+# Local evidence, logs and generated incident reports are private by default.
 var/
 *.log
