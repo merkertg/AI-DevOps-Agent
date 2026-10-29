@@ -11,14 +11,15 @@ structured observations. Import the public API from `app.domain`; the
 | Type | Fields and meaning |
 | --- | --- |
 | `Incident` | `incident_id`, `service`, `starts_at`, `ends_at`: one service and an inclusive event-time interval |
-| `Source` | `source_id`, `service`, `kind`: `SourceKind.APPLICATION_LOG` or `SourceKind.CONTAINER_STATE` |
+| `Source` | `source_id`, `service`, `kind`: `SourceKind.APPLICATION_LOG`, `SourceKind.CONTAINER_STATE` or `SourceKind.DEPLOYMENT_HISTORY` |
 | `Observation` | `observation_id`, `source_id`, `event_time`, `received_at`, `kind`, optional `message` and `exit_code` |
 | `EvidenceReference` | `observation_id`: an existing observation in this investigation |
 
 Use enum members rather than raw strings. Observation kinds are
-`CONNECTION_REFUSED`, `CONTAINER_EXIT` and `NOTE`; a container exit needs an
+`CONNECTION_REFUSED`, `CONTAINER_EXIT`, `DEPLOYMENT` and `NOTE`; a container exit needs an
 integer exit code in `0..255`, excluding booleans. Connection refusal requires
 an application-log source; container exit requires a container-state source.
+Deployment observations require a deployment-history source.
 Timestamps must carry an explicit UTC offset. They normalize
 to UTC. `received_at` may fall after the incident end but cannot precede
 `event_time`.
@@ -43,6 +44,11 @@ for that conflicting exit group is suppressed. Exit code zero produces an
 observed-exit fact without an error hypothesis. A container-state source must
 represent one entity, such as one container.
 Each finding carries references to its supporting observations.
+
+Stage 05 also records structured deployments as facts. It may link the latest
+preceding deployment to a subsequent failure signal, retaining both references
+and the explicit caveat that temporal order does not establish causation. See
+[deployment history](investigation-history.md).
 
 ## Boundaries
 

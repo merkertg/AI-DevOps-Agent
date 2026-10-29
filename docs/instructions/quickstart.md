@@ -8,6 +8,7 @@ optionally change settings.
 ## Requirements
 
 - Python 3.12. The project accepts `>=3.12,<3.13`; `.python-version` selects 3.12.
+- A local `git` executable for the optional Stage 05 deployment-history lab.
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) for dependency
   and environment management.
 - No `.env`, Docker, database or model key is needed for the API, tests and
@@ -25,6 +26,13 @@ uv run --locked python -m app.cli fixtures/stage03/connection_failure.json
 This prints a JSON report without starting the web server. Input is fictional;
 the report retains observations, evidence links and uncertainty. See
 [offline investigation](offline-investigation.md) for the format and limits.
+
+## Save an investigation
+
+For saved reports and the fictional deployment-history lab, follow
+[saved investigations](investigation-history.md). `--store PATH` adds local SQLite
+storage to either investigation CLI; `--repository PATH` reads allowlisted lab
+deployment evidence. No database server is required.
 
 ## Start the API
 

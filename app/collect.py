@@ -1,13 +1,18 @@
-"""Collect allowlisted Stage 04 lab evidence from Docker and print its JSON report."""
+"""Collect allowlisted lab evidence from Docker and print its report or receipt."""
 
-import argparse
 import os
 import sys
 from collections.abc import Callable, Mapping, Sequence
-from datetime import UTC, datetime
-from typing import NoReturn
+from datetime import datetime
 
-from app.application.reporting import render_report
+from app.cli_support import (
+    SafeArgumentParser,
+    add_history_and_store_options,
+    finish,
+    utc_now,
+    with_deployment_history,
+)
+from app.infrastructure.deployments import HistoryError
 from app.infrastructure.docker_engine import (
     DockerEngineClient,
     DockerError,
@@ -20,31 +25,18 @@ from app.infrastructure.docker_lab import (
     collect_lab,
     select_targets,
 )
-
-
-class _SafeArgumentParser(argparse.ArgumentParser):
-    """Keep invalid command arguments out of diagnostics and operational reports."""
-
-    def error(self, message: str) -> NoReturn:
-        """Reject bad invocation without echoing untrusted values or local paths."""
-        self.print_usage(sys.stderr)
-        self.exit(2, "error: invalid command arguments; use --help\n")
-
-
-def _utc_now() -> datetime:
-    """Return the collection time as an aware UTC timestamp."""
-    return datetime.now(UTC)
+from app.infrastructure.sqlite_store import StoreError
 
 
 def main(
     argv: Sequence[str] | None = None,
     *,
     environ: Mapping[str, str] | None = None,
-    clock: Callable[[], datetime] = _utc_now,
+    clock: Callable[[], datetime] = utc_now,
 ) -> int:
-    """Read allowlisted lab containers once and print one report or a safe error."""
+    """Read allowlisted lab containers once and print one document or a safe error."""
     limits = DEFAULT_COLLECTION_LIMITS
-    parser = _SafeArgumentParser(
+    parser = SafeArgumentParser(
         prog="python -m app.collect",
         description=(
             "Read state and bounded logs of allowlisted Stage 04 lab containers "
@@ -71,6 +63,7 @@ def main(
         metavar="PATH",
         help="Unix socket path; defaults to DOCKER_HOST or the usual locations",
     )
+    add_history_and_store_options(parser)
     arguments = parser.parse_args(argv)
     try:
         targets = select_targets(STAGE04_LAB, arguments.container, limits)
@@ -84,18 +77,21 @@ def main(
             max_inspect_bytes=limits.max_inspect_bytes,
             max_log_bytes=limits.max_log_bytes,
         )
+        collected_at = clock()
         prepared = collect_lab(
             client,
-            collected_at=clock(),
+            collected_at=collected_at,
             window_minutes=arguments.minutes,
             requested=targets,
             incident_id=arguments.incident_id,
             limits=limits,
         )
-    except (CollectionError, DockerError) as error:
+        prepared = with_deployment_history(prepared, arguments.repository)
+        document = finish(prepared, arguments.store, collected_at)
+    except (CollectionError, DockerError, HistoryError, StoreError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
-    sys.stdout.write(render_report(prepared))
+    sys.stdout.write(document)
     return 0
 
 

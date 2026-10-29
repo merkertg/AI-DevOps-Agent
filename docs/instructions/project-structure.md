@@ -15,17 +15,27 @@ app/
   application/
     inputs.py            # PreparedInput: sanitized evidence and data-quality metadata
     reporting.py         # build_report(), uncertainty and stable JSON rendering
+    snapshots.py         # Canonical prepared input encoding and strict decoding
+    records.py           # Store protocol, immutable records, hashes and reproduction checks
   infrastructure/
     fixtures.py          # Bounded regular-file reader and strict JSON-to-domain adapter
     redaction.py         # Documented sensitive text patterns, replacement count, bounding
     docker_engine.py     # Guarded GET-only Docker Engine client over a Unix socket
     docker_lab.py        # Code allowlist, lab label check and Docker-to-domain mapping
+    deployments.py       # Allowlisted deployment metadata, time checks and evidence mapping
+    git_history.py       # Read annotated Git objects through GitPython without writes
+    sqlite_store.py      # Atomic append-only local store and read-only inspection
   cli.py                 # Offline fixture investigation; stdout JSON, safe stderr
   collect.py             # Stage 04 lab collector CLI; stdout JSON, safe stderr
+  cli_support.py         # Shared optional repository/store composition and safe arguments
+  investigations.py     # Read-only list, show and verify of saved investigations
 fixtures/stage03/         # Two fictional JSON examples: known signals and partial collection
+fixtures/stage05/         # Fictional failure after a recorded lab deployment
 lab/stage04/
   compose.yaml           # Disposable lab: one labeled service, no network, no Docker socket
   training_api.py        # Fictional process: structured refusal, then exit code 3
+lab/stage05/
+  make_history.py        # Developer setup: create fictional repository or add lab tag
 tests/
   conftest.py            # Clean APP_* environment, temporary working directory, fresh client
   test_config.py         # Defaults, validation, source precedence and settings cache
@@ -39,6 +49,14 @@ tests/
   test_docker_engine.py  # Request guard, client surface, stream parsing, limits, errors
   test_docker_lab.py     # Allowlist, label, signals, gaps, redaction and the lab process
   test_collect_cli.py    # Collector CLI against the fake daemon and safe failures
+  git_lab.py             # Isolated fictional Git repository helper
+  test_snapshots.py      # Canonical encoding, strict decoding and rejected snapshots
+  test_records.py        # Hashes, identity, metadata and report reproduction
+  test_sqlite_store.py   # Persistent records, atomic deduplication and append controls
+  test_git_history.py    # Read-only allowlisted Git history and bounded objects
+  test_deployments.py    # Structured tags, explicit deploy times, gaps and filtering
+  test_domain_deployments.py # Deployment facts and cautious temporal hypotheses
+  test_investigations_cli.py # Real save/read/verify processes, old reports and safe errors
 scripts/
   check_docs.py          # Local Markdown link targets; external URLs are not requested
 docs/
@@ -49,6 +67,7 @@ docs/
   STAGE_02.md            # Incident domain and evidence learning guide in Russian
   STAGE_03.md            # Bounded intake, redaction and CLI learning guide in Russian
   STAGE_04.md            # Docker lab, access boundary and collector guide in Russian
+  STAGE_05.md            # SQLite records, verification and deployment history in Russian
   ROADMAP.md             # Planned stages and completion criteria in Russian
   CI_CD.md               # CI and stage publication guide in Russian
   APPROACH.md            # Current design, boundaries and planned architecture
@@ -80,18 +99,24 @@ GET logs) → collect_lab() → PreparedInput → render_report() → JSON`. It 
 the redaction and reporting of the offline path. See
 [Docker lab and collector](docker-lab.md).
 
+Stage 05 extends either input path with optional `--repository` evidence and
+`--store` persistence. `build_record()` encodes the prepared input and original
+report; `SqliteInvestigationStore` inserts once. `investigations list/show/verify`
+reads the stored snapshot in a later process. See
+[saved investigations and deployment history](investigation-history.md).
+
 ## Planned responsibilities
 
 Create new layers only when they own behavior:
 
 | Future location | First responsibility |
 | --- | --- |
-| Application ports | Storage or model providers when a use case needs them |
-| Additional infrastructure adapters | Storage, Git and model integration |
+| Additional application ports | Model providers when a use case needs them |
+| Additional infrastructure adapters | Model and telemetry integration |
 | Further lab services | Telemetry and more controlled incidents (Stage 07) |
 | Evaluation suite | Independent incident labels and quality thresholds |
 
 These locations are design directions, not implemented directories. The original
-stack continues as planned: GitPython for history, LangGraph for bounded
+stack continues as planned: LangGraph for bounded
 orchestration, Prometheus and OpenTelemetry for correlation. See the
 [roadmap](../ROADMAP.md) for their order and completion criteria.

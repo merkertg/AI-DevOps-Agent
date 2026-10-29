@@ -1,6 +1,7 @@
 """Keep foundation tests independent of local configuration and external services."""
 
 import os
+import shutil
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -10,6 +11,7 @@ from fastapi.testclient import TestClient
 from app.config import get_settings
 
 from docker_fake import FakeDocker
+from git_lab import create_lab
 
 
 @pytest.fixture(autouse=True)
@@ -43,3 +45,19 @@ def fake_docker() -> Iterator[FakeDocker]:
         yield daemon
     finally:
         daemon.close()
+
+
+@pytest.fixture(scope="session")
+def lab_template(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """Build the fictional Stage 05 repository once; tests copy it before use."""
+    repository = tmp_path_factory.mktemp("lab-template") / "training-api"
+    create_lab(repository)
+    return repository
+
+
+@pytest.fixture
+def lab_repository(lab_template: Path, tmp_path: Path) -> Path:
+    """Give each test its own copy of the lab repository to read or extend."""
+    repository = tmp_path / "training-api"
+    shutil.copytree(lab_template, repository, symlinks=True)
+    return repository

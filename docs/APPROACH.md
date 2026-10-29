@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stages 01–04
+## Current implementation: Stages 01–05
 
 Stage 01 contains a small FastAPI application:
 
@@ -95,6 +95,34 @@ against the collector's own mistakes; it does not reduce socket privileges, as
 recorded in [ADR 0002](adr/0002-docker-lab-collector-access.md). See
 [Docker lab and collector](instructions/docker-lab.md).
 
+Stage 05 adds optional deployment history and persisted investigations:
+
+```text
+PreparedInput + allowlisted annotated Git tags → domain report
+                                                   ↓
+canonical input + original report + versions + SHA-256 → SQLite
+                                                   ↓
+                          later process: list / show / verify
+```
+
+GitPython reads the fictional repository identified by its pinned root object.
+Only explicit deployment metadata in annotated `deploy/lab/` tags becomes a
+deployment observation; commit time is not deployment time. The domain may
+connect a preceding deployment to a later failure signal, with both references
+and a causal caveat. Missing or skipped history remains a gap. The local reader
+does not modify the working tree, index, refs or remote. Identity conventions
+and finite object limits do not make it a hostile-repository sandbox.
+
+SQLite stores canonical prepared evidence, quality metadata, the original
+report, versions and hashes. Atomic insertion deduplicates by full input hash;
+repeat saves return the original record. Known-schema triggers reject normal
+replacement/update/delete. Read-only inspection preserves the stored report;
+verification compares hashes and regenerates it with current code. Hashes and
+triggers are consistency controls, not authentication against a file owner.
+See [ADR 0003](adr/0003-immutable-investigation-records.md),
+[ADR 0004](adr/0004-recorded-lab-deployments.md) and
+[saved investigations](instructions/investigation-history.md).
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
@@ -107,7 +135,8 @@ recorded in [ADR 0002](adr/0002-docker-lab-collector-access.md). See
 | pytest, Ruff, mypy | Behavior, style and strict type checks | Implemented |
 | GitHub Actions | Continuous integration | Configured; remote result in [verification](VERIFICATION.md) |
 | Docker Engine API over a Unix socket (standard library) | Disposable lab and guarded read-only collector | Implemented, Stage 04 |
-| GitPython | Read-only deployment history | Planned, Stage 05 |
+| GitPython | Read-only deployment history of the fictional allowlisted lab | Implemented, Stage 05 |
+| SQLite (standard library) | Append-only local records, canonical input and reproduction checks | Implemented, Stage 05 |
 | LangGraph | Bounded investigation orchestration | Planned, Stage 06 |
 | Prometheus, OpenTelemetry | Telemetry correlation | Planned, Stage 07 |
 
@@ -185,7 +214,6 @@ and the detailed [CI/CD guide](CI_CD.md).
 
 ## Next steps
 
-Stage 05 stores investigations with their normalized inputs and reads the
-deployment history of an allowed repository through GitPython without changing
-it. The [roadmap](ROADMAP.md) lists the following stages and their completion
-criteria.
+Stage 06 adds bounded LangGraph investigation over prepared observations and
+saved materials. Model providers and any wider access require their own checks.
+The [roadmap](ROADMAP.md) lists the following stages and their completion criteria.

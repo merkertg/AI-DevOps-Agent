@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "incident": {
+    "incident_id": "training-after-deployment",
+    "service": "training-api",
+    "starts_at": "2026-10-29T10:00:00+00:00",
+    "ends_at": "2026-10-29T10:30:00+00:00"
+  },
+  "sources": [
+    {"source_id": "api-log", "service": "training-api", "kind": "application_log"},
+    {"source_id": "api-container", "service": "training-api", "kind": "container_state"}
+  ],
+  "observations": [
+    {
+      "observation_id": "obs-startup",
+      "source_id": "api-log",
+      "event_time": "2026-10-29T10:24:58+00:00",
+      "received_at": "2026-10-29T10:24:59+00:00",
+      "kind": "note",
+      "message": "Fictional training-api starting with dependency port 5432."
+    },
+    {
+      "observation_id": "obs-refusal",
+      "source_id": "api-log",
+      "event_time": "2026-10-29T10:25:00+00:00",
+      "received_at": "2026-10-29T10:25:01+00:00",
+      "kind": "connection_refused",
+      "message": "Fictional dependency connection refused."
+    },
+    {
+      "observation_id": "obs-exit",
+      "source_id": "api-container",
+      "event_time": "2026-10-29T10:25:01+00:00",
+      "received_at": "2026-10-29T10:25:03+00:00",
+      "kind": "container_exit",
+      "message": "Fictional container exited after the refused connection.",
+      "exit_code": 3
+    }
+  ],
+  "collection": {"complete": true, "truncated": false, "gaps": []}
+}

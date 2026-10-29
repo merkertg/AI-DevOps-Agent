@@ -1,4 +1,4 @@
-"""Apply two explicit offline rules without interpreting or executing messages."""
+"""Apply explicit offline rules without interpreting or executing messages."""
 
 from collections import defaultdict
 from collections.abc import Iterable
@@ -15,6 +15,33 @@ from app.domain.models import (
     ObservationKind,
     Source,
 )
+
+
+def _is_failure(observation: Observation, disputed: set[tuple[str, datetime]]) -> bool:
+    """Treat a refused connection or an undisputed nonzero exit as a failure signal."""
+    if observation.kind is ObservationKind.CONNECTION_REFUSED:
+        return True
+    return (
+        observation.kind is ObservationKind.CONTAINER_EXIT
+        and observation.exit_code != 0
+        and (observation.source_id, observation.event_time) not in disputed
+    )
+
+
+def _deployment_hypothesis(deployment: Observation, failure: Observation) -> Hypothesis:
+    """Link a deployment to a later failure while stating that order is not cause."""
+    return Hypothesis(
+        code="deployment_preceded_failure",
+        statement=(
+            f"Deployment observation {deployment.observation_id} precedes "
+            f"failure observation {failure.observation_id}. Temporal order alone "
+            "does not establish that the deployment caused the failure."
+        ),
+        evidence=(
+            EvidenceReference(deployment.observation_id),
+            EvidenceReference(failure.observation_id),
+        ),
+    )
 
 
 def investigate(
@@ -45,9 +72,29 @@ def investigate(
     )
     facts: list[Fact] = []
     hypotheses: list[Hypothesis] = []
+    # Only the latest recorded deployment before a failure signal is linked to it.
+    pending_deployment: Observation | None = None
     for observation in snapshot.timeline:
         evidence = (EvidenceReference(observation.observation_id),)
-        if observation.kind is ObservationKind.CONNECTION_REFUSED:
+        if _is_failure(observation, disputed) and pending_deployment is not None:
+            if pending_deployment.event_time < observation.event_time:
+                hypotheses.append(
+                    _deployment_hypothesis(pending_deployment, observation)
+                )
+                pending_deployment = None
+        if observation.kind is ObservationKind.DEPLOYMENT:
+            facts.append(
+                Fact(
+                    code="deployment_recorded",
+                    statement=(
+                        f"Observation {observation.observation_id} "
+                        "records a deployment."
+                    ),
+                    evidence=evidence,
+                )
+            )
+            pending_deployment = observation
+        elif observation.kind is ObservationKind.CONNECTION_REFUSED:
             facts.append(
                 Fact(
                     code="connection_refused",

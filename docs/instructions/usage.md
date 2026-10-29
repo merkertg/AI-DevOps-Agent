@@ -63,3 +63,7 @@ validated environment label, not a deployment or authorization mechanism.
 
 There are no investigation, upload, container, agent or report endpoints yet.
 Their staged implementation is described in the [roadmap](../ROADMAP.md).
+
+Stage 05 storage and deployment history are CLI features. Use
+[saved investigations](investigation-history.md) for `--repository`, `--store`
+and the read-only `list`, `show`, `verify` commands. They add no HTTP route.

@@ -24,9 +24,13 @@ one hypothesis, sanitized collection gaps, an uncovered container source and
 
 Exit `0` means a report was produced, including for partial evidence. Exit `2`
 means input or invocation was rejected; stdout is empty and stderr contains a
-safe diagnostic. The CLI does not write a report file itself. If needed, redirect
+safe diagnostic. Without `--store`, the CLI does not write a report file itself. If needed, redirect
 stdout to an ignored local location such as `var/report.json` after creating
 `var/`. Do not commit real operational inputs or generated private reports.
+
+Stage 05 adds optional `--repository PATH` deployment evidence and `--store PATH`
+local SQLite storage. With `--store`, stdout is a receipt rather than the full
+report. See [saved investigations](investigation-history.md) for the full path.
 
 ## Fixture schema version 1
 
@@ -45,8 +49,10 @@ Missing `collection.complete` means unknown completeness. Identifiers and servic
 names are trimmed ASCII slugs matching `[A-Za-z0-9][A-Za-z0-9_.-]{0,63}`;
 recognized sensitive metadata is rejected rather than echoed or rewritten.
 Times are trimmed ISO-8601 strings with explicit offsets and normalize to UTC.
-Source kinds are `application_log` or `container_state`; observation kinds are
-`connection_refused`, `container_exit` or `note`. Enum values must match exactly.
+Source kinds are `application_log`, `container_state` or `deployment_history`;
+observation kinds are `connection_refused`, `container_exit`, `deployment` or
+`note`. Enum values must match exactly. A deployment requires a deployment-history
+source; a structured fixture record remains a producer claim.
 Exit codes are integers in `0..255`, excluding booleans, and only accompany exits.
 The [domain contract](incident-domain.md) enforces scope and source compatibility.
 

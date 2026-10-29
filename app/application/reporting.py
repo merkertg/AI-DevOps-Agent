@@ -12,19 +12,36 @@ _COMMON_LIMITATIONS = (
     "Only documented redaction patterns are removed; arbitrary secrets may remain.",
     "Structured signals and reference resolution do not prove a root cause.",
 )
-_ORIGIN_LIMITATIONS: dict[Origin, tuple[str, ...]] = {
-    "fixture": (
-        "No live infrastructure, deployment history, model or telemetry was queried.",
+# The scope sentence depends on whether deployment history was read for this input.
+_SCOPE_LIMITATIONS: dict[tuple[Origin, bool], str] = {
+    ("fixture", False): (
+        "No live infrastructure, deployment history, model or telemetry was queried."
     ),
-    "docker_lab": (
+    ("fixture", True): "No live infrastructure, model or telemetry was queried.",
+    ("docker_lab", False): (
         "Docker state and logs were read once from allowlisted lab containers; "
-        "deployment history, models and telemetry were not queried.",
+        "deployment history, models and telemetry were not queried."
+    ),
+    ("docker_lab", True): (
+        "Docker state and logs were read once from allowlisted lab containers; "
+        "models and telemetry were not queried."
+    ),
+}
+_ORIGIN_LIMITATIONS: dict[Origin, tuple[str, ...]] = {
+    "fixture": (),
+    "docker_lab": (
         "Log times are Docker daemon receipt times; Docker state shows only the "
         "latest container exit.",
         "Signals come from Docker state and the application's structured event "
         "field; they are reports, not independent proof.",
     ),
 }
+_HISTORY_LIMITATIONS = (
+    "Deployment records are annotated tags in the allowlisted lab repository; "
+    "they are recorded claims, not proof of what ran.",
+    "Only deployments recorded inside the incident window are included; commit "
+    "time is never used as deployment time.",
+)
 
 
 def build_report(prepared: PreparedInput) -> dict[str, object]:
@@ -88,9 +105,12 @@ def build_report(prepared: PreparedInput) -> dict[str, object]:
         "redaction_count": prepared.redaction_count,
     }
     report["unknowns"] = unknowns
+    history_read = prepared.history_repository is not None
     report["limitations"] = [
         *_COMMON_LIMITATIONS,
+        _SCOPE_LIMITATIONS[(prepared.origin, history_read)],
         *_ORIGIN_LIMITATIONS[prepared.origin],
+        *(_HISTORY_LIMITATIONS if history_read else ()),
     ]
     return report
 

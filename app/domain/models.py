@@ -6,10 +6,11 @@ from enum import StrEnum
 
 
 class SourceKind(StrEnum):
-    """Distinguish an application log stream from container state observations."""
+    """Distinguish application logs, container state and recorded deployments."""
 
     APPLICATION_LOG = "application_log"
     CONTAINER_STATE = "container_state"
+    DEPLOYMENT_HISTORY = "deployment_history"
 
 
 class ObservationKind(StrEnum):
@@ -17,7 +18,16 @@ class ObservationKind(StrEnum):
 
     CONNECTION_REFUSED = "connection_refused"
     CONTAINER_EXIT = "container_exit"
+    DEPLOYMENT = "deployment"
     NOTE = "note"
+
+
+# Each structured signal is accepted only from the source kind that can report it.
+_SIGNAL_SOURCES = {
+    ObservationKind.CONNECTION_REFUSED: SourceKind.APPLICATION_LOG,
+    ObservationKind.CONTAINER_EXIT: SourceKind.CONTAINER_STATE,
+    ObservationKind.DEPLOYMENT: SourceKind.DEPLOYMENT_HISTORY,
+}
 
 
 def _require_text(value: str, name: str) -> None:
@@ -226,13 +236,8 @@ class Investigation:
                 raise ValueError(f"unknown source_id: {event.source_id}")
             if not self.incident.starts_at <= event.event_time <= self.incident.ends_at:
                 raise ValueError("event_time is outside the incident interval")
-            if (
-                event.kind is ObservationKind.CONTAINER_EXIT
-                and source.kind is not SourceKind.CONTAINER_STATE
-            ) or (
-                event.kind is ObservationKind.CONNECTION_REFUSED
-                and source.kind is not SourceKind.APPLICATION_LOG
-            ):
+            required = _SIGNAL_SOURCES.get(event.kind)
+            if required is not None and source.kind is not required:
                 raise ValueError("observation kind is incompatible with source kind")
         findings: tuple[Fact | Hypothesis | Contradiction, ...] = (
             *facts,

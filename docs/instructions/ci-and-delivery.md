@@ -44,7 +44,7 @@ have their own status.
 
 ## Delivery boundaries
 
-Stages 01–04 provide continuous integration configuration. Container building, image
+Stages 01–05 provide continuous integration configuration. Container building, image
 publication and deployment are not configured. Stage 08 will add container
 checks and a documented delivery path after the investigation workflow exists.
 Delivery of this project's code is separate from the agent's read-only access

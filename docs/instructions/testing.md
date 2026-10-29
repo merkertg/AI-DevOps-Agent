@@ -65,6 +65,19 @@ limits, missing or unavailable daemons, label checks, gaps, redaction, inert
 log text and reproducible reports. A live lab run is a separate check recorded
 in [VERIFICATION.md](../VERIFICATION.md).
 
+Stage 05 uses temporary SQLite files and independent copies of the fictional Git
+lab. It checks persistent reads, canonical snapshots, hashes, append-only records,
+idempotency, changed inputs, tampering, deployment-time metadata, allowlist errors
+and repository immutability. Git must be available locally; no remote is used.
+
+```bash
+uv run --locked pytest tests/test_records.py tests/test_snapshots.py tests/test_sqlite_store.py tests/test_git_history.py tests/test_deployments.py tests/test_domain_deployments.py tests/test_investigations_cli.py
+```
+
+Run the [Stage 05 walkthrough](../STAGE_05.md) to create/save in one process and
+show/verify in another. A verification mismatch is exit `1`; a command/store
+error is exit `2`. Store inspection opens SQLite read-only.
+
 Ruff checks common errors and imports; its format check does not modify files.
 Strict mypy checks annotated Python types. Pytest verifies behavior. The local
 documentation checker validates repository file targets; it does not establish

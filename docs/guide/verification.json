@@ -1,151 +1,279 @@
 {
   "checked_on": "2026-10-29",
-  "stage": "04",
-  "scope": "Disposable Docker lab with a controlled failure and a host collector that reads selected state and bounded logs of allowlisted containers through guarded GET requests",
-  "base_commit": "12166f989a39c69bdd72bf49b3e52acd0e806a29",
+  "stage": "05",
+  "scope": "Immutable local investigation records, read-only saved-report inspection and deployment claims from the allowlisted Git lab",
+  "base_commit": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
     "uv": "0.12.23",
-    "docker_cli": "29.8.2",
-    "docker_daemon": "not running"
-  },
-  "collection_limits": {
-    "max_targets": 4,
-    "max_window_minutes": 1440,
-    "max_log_lines": 500,
-    "max_log_bytes": 1048576,
-    "max_inspect_bytes": 262144,
-    "max_message_chars": 2048,
-    "timeout_seconds": 5
-  },
-  "access_boundary": {
-    "decision": "docs/adr/0002-docker-lab-collector-access.md",
-    "allowed_requests": [
-      "GET /v1.44/containers/{name}/json",
-      "GET /v1.44/containers/{name}/logs?stdout&stderr&timestamps&since&until&tail"
-    ],
-    "allowlist": {
-      "lab": "stage04",
-      "service": "training-api",
-      "containers": [
-        "aidevops-lab04-api"
-      ]
-    },
-    "required_label": "ai-devops-agent.lab=stage04",
-    "socket_privileges_reduced": false
+    "sqlite": "3.53.1",
+    "git": "2.54.0 (Apple Git-157)",
+    "gitpython": "3.2.0"
   },
   "local_checks": {
-    "locked_sync": "passed",
+    "locked_sync": {
+      "status": "passed",
+      "resolved_packages": 36,
+      "installed_packages": 33
+    },
     "lock_check_offline": "passed",
-    "dependencies_changed": false,
+    "dependencies_changed": {
+      "intentional": true,
+      "added": {
+        "gitpython": "3.2.0",
+        "gitdb": "4.0.12",
+        "smmap": "5.0.3"
+      },
+      "unrelated_dependency_versions_changed": false
+    },
     "ruff_check": "passed",
     "ruff_format": {
       "status": "passed",
-      "formatted_files": 52
+      "formatted_files": 72
     },
     "mypy": {
       "status": "passed",
-      "source_files": 29
+      "source_files": 44,
+      "command": "uv run --locked mypy app tests scripts"
+    },
+    "mypy_with_lab": {
+      "status": "passed",
+      "source_files": 45,
+      "command": "uv run --locked mypy app tests scripts lab/stage05"
     },
     "pytest": {
       "status": "passed",
-      "passed": 351,
+      "passed": 519,
       "skipped": 0,
-      "previous_cases": 231,
-      "stage_04_cases": 120,
-      "docker_engine_cases": 64,
-      "docker_lab_cases": 42,
-      "collect_cli_cases": 14,
-      "real_docker_contacted": false
+      "previous_cases": 351,
+      "stage_05_cases": 168,
+      "snapshot_cases": 32,
+      "record_cases": 9,
+      "sqlite_cases": 32,
+      "git_reader_cases": 37,
+      "deployment_mapping_cases": 31,
+      "deployment_domain_cases": 14,
+      "saved_cli_cases": 13
     },
-    "fake_daemon_collection": {
+    "cli_storage_and_history_smoke": {
       "status": "passed",
-      "method": "Real python -m app.collect process against a fake Engine API on a Unix socket",
+      "real_cli_processes": true,
       "observations": 5,
-      "kinds": [
-        "note",
-        "note",
-        "note",
-        "connection_refused",
-        "container_exit"
-      ],
-      "facts": [
-        "connection_refused",
-        "container_exit_error"
-      ],
-      "hypotheses": 2,
+      "facts": 3,
+      "hypotheses": 3,
       "quality": "declared_complete",
-      "redaction_count": 1,
-      "fictional_env_and_token_absent": true,
-      "requests_seen": [
-        "GET .../aidevops-lab04-api/json",
-        "GET .../aidevops-lab04-api/logs"
-      ],
-      "byte_identical_with_fixed_clock": true
+      "first_created": true,
+      "repeat_created": false,
+      "repeat_keeps_id_and_storage_time": true,
+      "repository_bytes_modes_mtimes_unchanged": true,
+      "show_exact_saved_bytes": true,
+      "verify_without_original_repository": "verified",
+      "read_commands_preserve_sqlite_bytes_and_mtime": true,
+      "stored_count": 1
     },
-    "lab_process_without_docker": {
-      "status": "passed",
-      "exit_code": 3,
-      "final_event": "connection_refused"
+    "cli_regressions": {
+      "new_deployment_keeps_old_report_unchanged": "passed",
+      "missing_history_is_verifiable_gap": "passed",
+      "saved_verification_without_site_packages": "passed",
+      "tampered_verify_exits_one_and_show_refuses": "passed",
+      "fake_docker_store_composition": "passed"
     },
-    "stdlib_only_collector": {
+    "purpose_docstrings": {
       "status": "passed",
-      "method": "Python -I -S subprocess runs app.collect against the fake socket"
-    },
-    "cli_without_running_docker": "passed; exit 2, daemon unavailable message, no path",
-    "new_function_purpose_docstrings": {
-      "status": "passed",
-      "method": "AST check of new and changed modules and tests",
-      "modules": 12,
-      "definitions": 142,
-      "missing": 0
+      "functions_and_classes": 262,
+      "new_or_modified_python_files": 23
     },
     "documentation_links": {
       "status": "passed",
-      "links": 224,
-      "markdown_files": 22
+      "links": 277,
+      "markdown_files": 26
     },
     "documentation_anchors": {
       "status": "passed",
       "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 229,
-      "markdown_files": 22,
+      "local_links": 282,
+      "markdown_files": 26,
       "broken_links": 0
     },
     "git_diff_check": "passed",
+    "live_docker_lab": {
+      "status": "not_run",
+      "reason": "Stage 05 storage composition uses the fake daemon; live Docker was not started."
+    },
     "uvicorn_http_smoke": {
       "status": "not_run",
-      "reason": "Stage 04 adds no HTTP behavior; existing API passed in-process tests. Earlier real HTTP checks remain historical."
-    }
-  },
-  "live_lab": {
-    "status": "not_run",
-    "reason": "Docker Desktop was not running; docker version could not reach the daemon socket, so compose up, image pull and live collection were not performed."
+      "reason": "No HTTP behavior changed; existing health contracts passed in-process."
+    },
+    "sandbox": "The initial restricted run could not bind fake Unix sockets/test port; the permitted complete run passed all 519 tests."
   },
   "publication": {
-    "status": "pushed",
+    "status": "pending",
     "branch": "main",
-    "commit_sha": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
-    "remote_sha_verified": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
-    "method": "git push origin main followed by git ls-remote origin refs/heads/main",
-    "remote_base_verified": "12166f989a39c69bdd72bf49b3e52acd0e806a29",
-    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 04 implementation."
+    "remote_base_verified": "440f42e54ffac162d7e34f0b7adf72bb1cdd79e5"
   },
   "remote_ci": {
     "status": "not_verified",
-    "checked_commit": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
-    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's workflow runs; no hosted workflow result was observed."
+    "reason": "No hosted workflow result has been observed for the Stage 05 commit; check after push."
   },
   "limitations": [
-    "The request guard limits the collector's code; the process still holds the developer's Docker socket privileges.",
-    "Intended for a local lab only; TCP, TLS and SSH Docker hosts are refused; API 1.44 needs Docker Engine 25.0+.",
-    "Signals come from Docker state and the application's structured event field; log times are daemon receipt times.",
-    "Docker state shows only the latest exit; host and daemon clock skew can move lines across window edges.",
-    "Live lab behavior and compatibility with a specific Docker Engine version are not yet verified.",
-    "No investigation HTTP API, stored investigations, Git history, model, agent or telemetry integration."
+    "Hashes and append-only SQLite triggers detect consistency failures, not authenticated tamper resistance against a database owner.",
+    "Verification rebuilds with the current renderer; future renderer changes may produce a mismatch while the stored report remains available.",
+    "The Git reader is limited to a developer-selected copy of the fictional lab; pinned root object presence is not authentication or ancestry verification.",
+    "Git tag and object content limits do not impose a hard overall wall-clock deadline or bound all internal ref enumeration.",
+    "Deployment records are recorded claims and temporal order does not establish causation.",
+    "Supported redaction patterns do not remove arbitrary secrets; only fictional evidence is used.",
+    "No investigation HTTP API, LangGraph, LLM or telemetry is implemented; live Docker and new HTTP smoke were not run."
   ],
   "previous_checks": [
+    {
+      "checked_on": "2026-10-29",
+      "stage": "04",
+      "scope": "Disposable Docker lab with a controlled failure and a host collector that reads selected state and bounded logs of allowlisted containers through guarded GET requests",
+      "base_commit": "12166f989a39c69bdd72bf49b3e52acd0e806a29",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23",
+        "docker_cli": "29.8.2",
+        "docker_daemon": "not running"
+      },
+      "collection_limits": {
+        "max_targets": 4,
+        "max_window_minutes": 1440,
+        "max_log_lines": 500,
+        "max_log_bytes": 1048576,
+        "max_inspect_bytes": 262144,
+        "max_message_chars": 2048,
+        "timeout_seconds": 5
+      },
+      "access_boundary": {
+        "decision": "docs/adr/0002-docker-lab-collector-access.md",
+        "allowed_requests": [
+          "GET /v1.44/containers/{name}/json",
+          "GET /v1.44/containers/{name}/logs?stdout&stderr&timestamps&since&until&tail"
+        ],
+        "allowlist": {
+          "lab": "stage04",
+          "service": "training-api",
+          "containers": [
+            "aidevops-lab04-api"
+          ]
+        },
+        "required_label": "ai-devops-agent.lab=stage04",
+        "socket_privileges_reduced": false
+      },
+      "local_checks": {
+        "locked_sync": "passed",
+        "lock_check_offline": "passed",
+        "dependencies_changed": false,
+        "ruff_check": "passed",
+        "ruff_format": {
+          "status": "passed",
+          "formatted_files": 52
+        },
+        "mypy": {
+          "status": "passed",
+          "source_files": 29
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 351,
+          "skipped": 0,
+          "previous_cases": 231,
+          "stage_04_cases": 120,
+          "docker_engine_cases": 64,
+          "docker_lab_cases": 42,
+          "collect_cli_cases": 14,
+          "real_docker_contacted": false
+        },
+        "fake_daemon_collection": {
+          "status": "passed",
+          "method": "Real python -m app.collect process against a fake Engine API on a Unix socket",
+          "observations": 5,
+          "kinds": [
+            "note",
+            "note",
+            "note",
+            "connection_refused",
+            "container_exit"
+          ],
+          "facts": [
+            "connection_refused",
+            "container_exit_error"
+          ],
+          "hypotheses": 2,
+          "quality": "declared_complete",
+          "redaction_count": 1,
+          "fictional_env_and_token_absent": true,
+          "requests_seen": [
+            "GET .../aidevops-lab04-api/json",
+            "GET .../aidevops-lab04-api/logs"
+          ],
+          "byte_identical_with_fixed_clock": true
+        },
+        "lab_process_without_docker": {
+          "status": "passed",
+          "exit_code": 3,
+          "final_event": "connection_refused"
+        },
+        "stdlib_only_collector": {
+          "status": "passed",
+          "method": "Python -I -S subprocess runs app.collect against the fake socket"
+        },
+        "cli_without_running_docker": "passed; exit 2, daemon unavailable message, no path",
+        "new_function_purpose_docstrings": {
+          "status": "passed",
+          "method": "AST check of new and changed modules and tests",
+          "modules": 12,
+          "definitions": 142,
+          "missing": 0
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 224,
+          "markdown_files": 22
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 229,
+          "markdown_files": 22,
+          "broken_links": 0
+        },
+        "git_diff_check": "passed",
+        "uvicorn_http_smoke": {
+          "status": "not_run",
+          "reason": "Stage 04 adds no HTTP behavior; existing API passed in-process tests. Earlier real HTTP checks remain historical."
+        }
+      },
+      "live_lab": {
+        "status": "not_run",
+        "reason": "Docker Desktop was not running; docker version could not reach the daemon socket, so compose up, image pull and live collection were not performed."
+      },
+      "publication": {
+        "status": "pushed",
+        "branch": "main",
+        "commit_sha": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
+        "remote_sha_verified": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
+        "method": "git push origin main followed by git ls-remote origin refs/heads/main",
+        "remote_base_verified": "12166f989a39c69bdd72bf49b3e52acd0e806a29",
+        "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 04 implementation."
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "checked_commit": "400d8b1a36bf04aa250ff6a714ab6fb585d910ef",
+        "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's workflow runs; no hosted workflow result was observed."
+      },
+      "limitations": [
+        "The request guard limits the collector's code; the process still holds the developer's Docker socket privileges.",
+        "Intended for a local lab only; TCP, TLS and SSH Docker hosts are refused; API 1.44 needs Docker Engine 25.0+.",
+        "Signals come from Docker state and the application's structured event field; log times are daemon receipt times.",
+        "Docker state shows only the latest exit; host and daemon clock skew can move lines across window edges.",
+        "Live lab behavior and compatibility with a specific Docker Engine version are not yet verified.",
+        "No investigation HTTP API, stored investigations, Git history, model, agent or telemetry integration."
+      ]
+    },
     {
       "checked_on": "2026-10-29",
       "implemented_on": "2026-10-27",

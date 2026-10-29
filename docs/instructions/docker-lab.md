@@ -43,8 +43,13 @@ recorded in [VERIFICATION.md](../VERIFICATION.md).
 | `--container NAME` | Allowlisted container to read; repeatable; default all |
 | `--incident-id ID` | Report identifier slug; default `stage04-<UTC time>` |
 | `--docker-socket PATH` | Unix socket; otherwise `DOCKER_HOST=unix://…`, then `/var/run/docker.sock`, then `~/.docker/run/docker.sock` |
+| `--repository PATH` | Optional allowlisted Stage 05 Git lab to read deployment evidence |
+| `--store PATH` | Optional local SQLite file; save the investigation and print a receipt |
 
 TCP, TLS and SSH Docker hosts are refused.
+The [saved investigation guide](investigation-history.md) explains repository
+identity, storage and read-only `list`, `show`, `verify` commands. Without these
+options the collector retains its report-only behavior.
 
 ## What the collector reads
 
