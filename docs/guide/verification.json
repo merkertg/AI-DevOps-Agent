@@ -144,13 +144,18 @@
     }
   },
   "publication": {
-    "status": "pending",
+    "status": "pushed",
+    "branch": "main",
+    "commit_sha": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
+    "remote_sha_verified": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
+    "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
     "remote_base_verified": "4513fcad893c86f9a63f5a83dc92dc6d82a8ca3c",
-    "note": "Push and remote CI are recorded in a follow-up documentation commit."
+    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 06 implementation."
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "Not yet published at the time of this record."
+    "checked_commit": "b68ddba390d98e7dd19d1f0802a37328891c9ee5",
+    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; no hosted workflow result was observed."
   },
   "limitations": [
     "The offline provider follows fixed rules and is not a language model; a real model adapter and its live check are a later step.",
