@@ -170,13 +170,18 @@
     "git_diff_check": "passed"
   },
   "publication": {
-    "status": "pending",
+    "status": "pushed",
+    "branch": "main",
+    "commit_sha": "236527b3609d86a3163df3d65d4727c26a83a3c2",
+    "remote_sha_verified": "236527b3609d86a3163df3d65d4727c26a83a3c2",
+    "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
     "remote_base_verified": "1f0152976d12aae6a754ce05e3f58742bb8a12f9",
-    "note": "Push and remote CI are recorded in a follow-up documentation commit."
+    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 08 implementation."
   },
   "remote_ci": {
     "status": "not_verified",
-    "reason": "Not yet published at the time of this record."
+    "checked_commit": "236527b3609d86a3163df3d65d4727c26a83a3c2",
+    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; neither the checks nor the new container job result was observed."
   },
   "limitations": [
     "The image is not pushed to a registry, signed, scanned or deployed.",
