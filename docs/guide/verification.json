@@ -1,40 +1,118 @@
 {
-  "checked_on": "2026-10-29",
-  "stage": "07",
-  "scope": "Allowlisted Prometheus range queries, a bounded OpenTelemetry trace export and trace-ID correlation with logs, with missing trace IDs, missing traces, clock skew and stale or unavailable metrics reported as gaps; disposable telemetry lab",
-  "base_commit": "ef32e226d2fd7a9b34534af2d3be8fb9a5daf8f4",
+  "checked_on": "2026-10-30",
+  "stage": "08",
+  "scope": "Token-scoped investigation HTTP API over inline fictional fixtures, an evaluation suite of six hand-labelled incidents with ten corruptions each, and a non-root API container built and smoke-tested in CI",
+  "base_commit": "1f0152976d12aae6a754ce05e3f58742bb8a12f9",
+  "app_version": "0.8.0",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
     "uv": "0.12.23",
-    "docker": "Docker Desktop 29.8.2 (aarch64)",
-    "images": [
-      "python:3.12.15-slim",
-      "prom/prometheus:v3.15.0",
-      "otel/opentelemetry-collector-contrib:0.161.0"
-    ]
+    "docker": "Docker Desktop 29.8.2 (aarch64)"
   },
-  "telemetry_scope": {
-    "service": "training-api",
-    "queries": {
-      "dependency_failures": "increase(training_api_dependency_failures_total{job=\"training-api\"}[1m])",
-      "target_down": "1 - up{job=\"training-api\"}"
+  "api": {
+    "routes": [
+      "POST /investigations",
+      "GET /investigations",
+      "GET /investigations/{id}",
+      "GET /investigations/{id}/verification",
+      "POST /investigations/{id}/agent"
+    ],
+    "closed_without_token_digests": true,
+    "token_settings": [
+      "APP_READ_TOKEN_SHA256",
+      "APP_WRITE_TOKEN_SHA256"
+    ],
+    "scopes": {
+      "write": "save and read",
+      "read": "list, read, verify, run the agent"
     },
-    "allowed_request": "GET /api/v1/query_range on a loopback http://host:port",
-    "trace_input": "OTLP JSON lines file of the lab collector",
-    "skew_tolerance_seconds": 1,
-    "stale_after_seconds": 60
+    "max_body_bytes": 1048576,
+    "accepts_server_paths_or_urls": false,
+    "idempotent_save": "same input returns the original record with HTTP 200"
   },
-  "telemetry_limits": {
-    "max_points": 500,
-    "max_response_bytes": 1048576,
-    "timeout_seconds": 5,
-    "max_signals_per_query": 20,
-    "max_trace_bytes": 4194304,
-    "max_trace_lines": 10000,
-    "max_spans": 2000,
-    "max_error_spans": 200,
-    "max_message_chars": 2048
+  "evaluation": {
+    "cases": [
+      "conflicting-exit",
+      "connection-failure",
+      "failure-without-history",
+      "partial-collection",
+      "recorded-deployment",
+      "telemetry-correlation"
+    ],
+    "metrics": [
+      "reference_validity",
+      "required_observation_recall",
+      "fact_recall",
+      "unexpected_facts",
+      "hypothesis_recall",
+      "unexpected_hypotheses",
+      "contradiction_recall",
+      "unexpected_contradictions",
+      "forbidden_citations",
+      "data_quality_matches",
+      "unknown_cause_handled",
+      "agent_compliant"
+    ],
+    "mutations": [
+      "drop_expected_fact",
+      "invent_citation",
+      "drop_required_observation",
+      "add_unexpected_fact",
+      "claim_root_cause",
+      "confirm_hypothesis",
+      "propose_repair",
+      "exceed_tool_budget",
+      "use_mutating_tool",
+      "flip_data_quality"
+    ],
+    "result": {
+      "status": "passed",
+      "passed_cases": 6,
+      "failed_cases": 0,
+      "mutations_applied": 60,
+      "mutations_detected": 60,
+      "missed": []
+    }
+  },
+  "container": {
+    "status": "passed",
+    "image": "ai-devops-agent:0.8.0",
+    "image_id": "sha256:3d7e4db4a44bf92aa5597e601cdcf975f497d8c7a6325706d4efde3be75684be",
+    "size_bytes": 274744484,
+    "base_images": {
+      "python": "python:3.12.15-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704",
+      "uv": "ghcr.io/astral-sh/uv:0.12.23@sha256:61d393e44e249f2e4b526b6c7ddcecce245946826e608e11c93ad4f5bba55b21"
+    },
+    "uid": 10001,
+    "dev_tools_absent": true,
+    "app_directory": [
+      ".venv",
+      "app"
+    ],
+    "smoke": "passed",
+    "health": "healthy",
+    "volume_persistence_after_recreate": {
+      "total": 1,
+      "verify": "verified"
+    },
+    "write_without_write_digest": 401,
+    "registry_publication": "not_configured",
+    "deployment": "not_configured"
+  },
+  "clean_environment": {
+    "status": "passed",
+    "method": "Copy of git ls-files -co --exclude-standard into an empty temporary directory without .venv or var/, then uv sync --locked",
+    "checks": [
+      "ruff check",
+      "ruff format --check",
+      "mypy",
+      "pytest 810 passed",
+      "check_docs",
+      "app.evaluate passed",
+      "uvicorn + scripts/api_smoke.py passed"
+    ],
+    "smoke_investigation_id": "inv-3dec28b1f8811404869dc78b"
   },
   "local_checks": {
     "locked_sync": {
@@ -44,125 +122,235 @@
     },
     "lock_check_offline": "passed",
     "dependencies_changed": false,
+    "lock_change": "project version 0.1.0 -> 0.8.0 only",
     "ruff_check": "passed",
     "ruff_format": {
       "status": "passed",
-      "formatted_files": 100
+      "formatted_files": 110,
+      "python_files": 74,
+      "markdown_files": 36
     },
     "mypy": {
       "status": "passed",
-      "source_files": 65,
+      "source_files": 71,
       "command": "uv run --locked mypy app tests scripts"
     },
     "mypy_with_labs": {
       "status": "passed",
-      "source_files": 67,
+      "source_files": 73,
       "command": "uv run --locked mypy app tests scripts lab/stage05 lab/stage07"
     },
     "pytest": {
       "status": "passed",
-      "passed": 712,
+      "passed": 810,
       "skipped": 0,
-      "previous_cases": 632,
-      "stage_07_cases": 80,
-      "evidence_cases": 34,
-      "reader_cases": 34,
-      "cli_cases": 9,
-      "lab_cases": 3,
-      "real_docker_or_prometheus_contacted": false
-    },
-    "offline_fixture": {
-      "status": "passed",
-      "observations": 13,
-      "same_trace_facts": 3,
-      "trace_error_facts": 3,
-      "metric_signal_facts": 2,
-      "quality": "partial",
-      "gaps": [
-        "Metric dependency_failures has no samples in the last 525 s of the window; collection may be delayed or the target stopped reporting."
-      ],
-      "earlier_reports_unchanged": true
+      "previous_cases": 712,
+      "stage_08_cases": 98,
+      "api_cases": 27,
+      "uvicorn_smoke_cases": 2,
+      "evaluation_cases": 69
     },
     "purpose_docstrings": {
       "status": "passed",
-      "functions_and_classes": 246,
-      "new_or_modified_python_files": 21
+      "functions_and_classes": 112,
+      "new_or_modified_python_files": 10
     },
     "documentation_links": {
       "status": "passed",
-      "links": 361,
-      "markdown_files": 32
+      "links": 415,
+      "markdown_files": 36
     },
     "documentation_anchors": {
       "status": "passed",
       "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 366,
-      "markdown_files": 32,
+      "local_links": 420,
+      "markdown_files": 36,
       "broken_links": 0
     },
-    "git_diff_check": "passed",
-    "uvicorn_http_smoke": {
-      "status": "not_run",
-      "reason": "No HTTP behavior changed; existing health contracts passed in-process."
-    }
-  },
-  "live_lab": {
-    "status": "passed",
-    "lab": "stage07",
-    "first_attempt": "docker compose up from the repository under ~/Desktop pulled the images but failed: Docker Desktop could not create the bind-mount source path (operation not permitted, macOS privacy). Partial resources were removed; system settings were not changed.",
-    "run_location": "A copy of lab/stage07 in a temporary directory with the same relative layout",
-    "service_exit_code": 3,
-    "refusal_log_lines": 6,
-    "exported_span_lines": 6,
-    "prometheus_up_after_exit": "0",
-    "collection": {
-      "command": "python -m app.collect --lab stage07 --minutes 10 --prometheus http://127.0.0.1:19090 --traces <export>",
-      "exit_code": 0,
-      "observations": 20,
-      "connection_refused": 6,
-      "trace_error": 6,
-      "same_trace_facts": 6,
-      "metric_signals": 2,
-      "container_exit_code": 3,
-      "quality": "declared_complete",
-      "gaps": 0,
-      "clock_skew_gaps": 0
-    },
-    "saved_investigation": "inv-b90e2bcd0a0398e311310bb4",
-    "verify": "verified",
-    "agent": {
-      "status": "answered",
-      "steps": 6,
-      "tool_calls": 5,
-      "cites_same_trace": true,
-      "next_check": "review_dependency_endpoint"
-    },
-    "teardown": "docker compose down -v removed containers, networks and the Prometheus volume",
-    "note": "After the live run only a type annotation changed in telemetry_api.py; behavior is unchanged. The Stage 04 live lab remains not_run."
+    "git_diff_check": "passed"
   },
   "publication": {
-    "status": "pushed",
-    "branch": "main",
-    "commit_sha": "1cc5f875a0965d78b28f365a156ef843eb6b0d3c",
-    "remote_sha_verified": "1cc5f875a0965d78b28f365a156ef843eb6b0d3c",
-    "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
-    "remote_base_verified": "ef32e226d2fd7a9b34534af2d3be8fb9a5daf8f4",
-    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 07 implementation."
+    "status": "pending",
+    "remote_base_verified": "1f0152976d12aae6a754ce05e3f58742bb8a12f9",
+    "note": "Push and remote CI are recorded in a follow-up documentation commit."
   },
   "remote_ci": {
     "status": "not_verified",
-    "checked_commit": "1cc5f875a0965d78b28f365a156ef843eb6b0d3c",
-    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; no hosted workflow result was observed."
+    "reason": "Not yet published at the time of this record."
   },
   "limitations": [
-    "Telemetry shows symptoms; correlation by trace ID or time does not establish a cause.",
-    "The one-second skew tolerance compares Docker receipt times with application span times; larger delays can hide or invent skew.",
-    "Metric staleness is measured at collection time, so a stopped process and a delayed scrape look alike.",
-    "The trace export file is not authenticated; it is trusted as the developer's own lab output.",
-    "On macOS, running the lab from ~/Desktop needs Docker Desktop access to that folder.",
-    "No investigation HTTP API, evaluations or real language model are implemented."
+    "The image is not pushed to a registry, signed, scanned or deployed.",
+    "Bearer tokens are only as safe as the transport; keep the API on loopback or behind TLS.",
+    "One read and one write token: no user identity, rotation or audit trail; every reader sees every report.",
+    "Six small fictional labelled incidents; labels are written by the code's author, so passing them does not establish quality on real incidents.",
+    "No real language model is connected; the Stage 04 live lab remains not_run."
   ],
   "previous_checks": [
+    {
+      "checked_on": "2026-10-29",
+      "stage": "07",
+      "scope": "Allowlisted Prometheus range queries, a bounded OpenTelemetry trace export and trace-ID correlation with logs, with missing trace IDs, missing traces, clock skew and stale or unavailable metrics reported as gaps; disposable telemetry lab",
+      "base_commit": "ef32e226d2fd7a9b34534af2d3be8fb9a5daf8f4",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23",
+        "docker": "Docker Desktop 29.8.2 (aarch64)",
+        "images": [
+          "python:3.12.15-slim",
+          "prom/prometheus:v3.15.0",
+          "otel/opentelemetry-collector-contrib:0.161.0"
+        ]
+      },
+      "telemetry_scope": {
+        "service": "training-api",
+        "queries": {
+          "dependency_failures": "increase(training_api_dependency_failures_total{job=\"training-api\"}[1m])",
+          "target_down": "1 - up{job=\"training-api\"}"
+        },
+        "allowed_request": "GET /api/v1/query_range on a loopback http://host:port",
+        "trace_input": "OTLP JSON lines file of the lab collector",
+        "skew_tolerance_seconds": 1,
+        "stale_after_seconds": 60
+      },
+      "telemetry_limits": {
+        "max_points": 500,
+        "max_response_bytes": 1048576,
+        "timeout_seconds": 5,
+        "max_signals_per_query": 20,
+        "max_trace_bytes": 4194304,
+        "max_trace_lines": 10000,
+        "max_spans": 2000,
+        "max_error_spans": 200,
+        "max_message_chars": 2048
+      },
+      "local_checks": {
+        "locked_sync": {
+          "status": "passed",
+          "resolved_packages": 62,
+          "installed_packages": 59
+        },
+        "lock_check_offline": "passed",
+        "dependencies_changed": false,
+        "ruff_check": "passed",
+        "ruff_format": {
+          "status": "passed",
+          "formatted_files": 100
+        },
+        "mypy": {
+          "status": "passed",
+          "source_files": 65,
+          "command": "uv run --locked mypy app tests scripts"
+        },
+        "mypy_with_labs": {
+          "status": "passed",
+          "source_files": 67,
+          "command": "uv run --locked mypy app tests scripts lab/stage05 lab/stage07"
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 712,
+          "skipped": 0,
+          "previous_cases": 632,
+          "stage_07_cases": 80,
+          "evidence_cases": 34,
+          "reader_cases": 34,
+          "cli_cases": 9,
+          "lab_cases": 3,
+          "real_docker_or_prometheus_contacted": false
+        },
+        "offline_fixture": {
+          "status": "passed",
+          "observations": 13,
+          "same_trace_facts": 3,
+          "trace_error_facts": 3,
+          "metric_signal_facts": 2,
+          "quality": "partial",
+          "gaps": [
+            "Metric dependency_failures has no samples in the last 525 s of the window; collection may be delayed or the target stopped reporting."
+          ],
+          "earlier_reports_unchanged": true
+        },
+        "purpose_docstrings": {
+          "status": "passed",
+          "functions_and_classes": 246,
+          "new_or_modified_python_files": 21
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 361,
+          "markdown_files": 32
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 366,
+          "markdown_files": 32,
+          "broken_links": 0
+        },
+        "git_diff_check": "passed",
+        "uvicorn_http_smoke": {
+          "status": "not_run",
+          "reason": "No HTTP behavior changed; existing health contracts passed in-process."
+        }
+      },
+      "live_lab": {
+        "status": "passed",
+        "lab": "stage07",
+        "first_attempt": "docker compose up from the repository under ~/Desktop pulled the images but failed: Docker Desktop could not create the bind-mount source path (operation not permitted, macOS privacy). Partial resources were removed; system settings were not changed.",
+        "run_location": "A copy of lab/stage07 in a temporary directory with the same relative layout",
+        "service_exit_code": 3,
+        "refusal_log_lines": 6,
+        "exported_span_lines": 6,
+        "prometheus_up_after_exit": "0",
+        "collection": {
+          "command": "python -m app.collect --lab stage07 --minutes 10 --prometheus http://127.0.0.1:19090 --traces <export>",
+          "exit_code": 0,
+          "observations": 20,
+          "connection_refused": 6,
+          "trace_error": 6,
+          "same_trace_facts": 6,
+          "metric_signals": 2,
+          "container_exit_code": 3,
+          "quality": "declared_complete",
+          "gaps": 0,
+          "clock_skew_gaps": 0
+        },
+        "saved_investigation": "inv-b90e2bcd0a0398e311310bb4",
+        "verify": "verified",
+        "agent": {
+          "status": "answered",
+          "steps": 6,
+          "tool_calls": 5,
+          "cites_same_trace": true,
+          "next_check": "review_dependency_endpoint"
+        },
+        "teardown": "docker compose down -v removed containers, networks and the Prometheus volume",
+        "note": "After the live run only a type annotation changed in telemetry_api.py; behavior is unchanged. The Stage 04 live lab remains not_run."
+      },
+      "publication": {
+        "status": "pushed",
+        "branch": "main",
+        "commit_sha": "1cc5f875a0965d78b28f365a156ef843eb6b0d3c",
+        "remote_sha_verified": "1cc5f875a0965d78b28f365a156ef843eb6b0d3c",
+        "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
+        "remote_base_verified": "ef32e226d2fd7a9b34534af2d3be8fb9a5daf8f4",
+        "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 07 implementation."
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "checked_commit": "1cc5f875a0965d78b28f365a156ef843eb6b0d3c",
+        "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; no hosted workflow result was observed."
+      },
+      "limitations": [
+        "Telemetry shows symptoms; correlation by trace ID or time does not establish a cause.",
+        "The one-second skew tolerance compares Docker receipt times with application span times; larger delays can hide or invent skew.",
+        "Metric staleness is measured at collection time, so a stopped process and a delayed scrape look alike.",
+        "The trace export file is not authenticated; it is trusted as the developer's own lab output.",
+        "On macOS, running the lab from ~/Desktop needs Docker Desktop access to that folder.",
+        "No investigation HTTP API, evaluations or real language model are implemented."
+      ]
+    },
     {
       "checked_on": "2026-10-29",
       "stage": "06",

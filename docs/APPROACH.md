@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stages 01–07
+## Current implementation: Stages 01–08
 
 Stage 01 contains a small FastAPI application:
 
@@ -158,6 +158,25 @@ trace ID or time is not stated as a cause. See
 [ADR 0006](adr/0006-allowlisted-telemetry.md) and
 [telemetry](instructions/telemetry.md).
 
+Stage 08 completes the user path:
+
+```text
+client + bearer token → /investigations (inline fixture only)
+      → same intake, store, verification and offline agent as the CLIs
+python -m app.evaluate → six labelled incidents + ten corruptions each
+Dockerfile → non-root image → CI build + API smoke test
+```
+
+The investigation routes stay closed until SHA-256 digests of a read and a
+write token are configured. The API accepts no paths or URLs, so it cannot make
+the server read Docker, Git or telemetry. Repeated saves of the same input
+return the original record. Evaluations compare the product's JSON with
+hand-written labels and fail when any deliberate corruption passes. The image is
+built and smoke-tested in CI; it is not pushed or deployed. See
+[ADR 0007](adr/0007-token-scoped-api-and-container.md),
+[using the API](instructions/usage.md), [evaluations](instructions/evaluations.md)
+and [container delivery](instructions/container.md).
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
@@ -165,7 +184,9 @@ trace ID or time is not stated as a cause. See
 | Python 3.12, uv, `uv.lock` | Runtime and reproducible environment | Implemented |
 | Standard-library dataclasses, enums and datetime | Immutable incident scope, timeline and evidence-linked rules | Implemented, Stage 02 |
 | Standard-library JSON, file adapter and argparse | Bounded offline intake, supported redaction and CLI report | Implemented, Stage 03 |
-| FastAPI, Uvicorn | HTTP API and ASGI server | Implemented |
+| FastAPI, Uvicorn | Health and the token-scoped investigation API | Implemented, Stages 01 and 08 |
+| Docker image (python slim, uv) | Non-root API container built and smoke-tested in CI | Implemented, Stage 08 |
+| Evaluation suite (standard library) | Labelled incidents, quality metrics and corruption detection | Implemented, Stage 08 |
 | Pydantic, pydantic-settings | Response contract and settings validation | Implemented |
 | pytest, Ruff, mypy | Behavior, style and strict type checks | Implemented |
 | GitHub Actions | Continuous integration | Configured; remote result in [verification](VERIFICATION.md) |
@@ -189,7 +210,7 @@ Grow a modular monolith as behavior appears:
 | Application | Investigation use cases, input/output ports and report generation | Stage 03 |
 | Infrastructure | Bounded file adapters, Docker collection, persistence, Git and telemetry readers; model adapters later | Stages 03–07 |
 | Agent orchestration | Bounded LangGraph investigation over application tools | Stage 06 |
-| API | Validated requests and reports exposed through application use cases | Stage 08 |
+| API | Token-scoped routes over the same intake, store, verification and agent | Stage 08 |
 
 Domain code depends on ordinary Python types rather than FastAPI, Docker,
 GitPython, LangGraph or storage frameworks. Adapters translate external data into
@@ -251,7 +272,8 @@ and the detailed [CI/CD guide](CI_CD.md).
 
 ## Next steps
 
-A real model adapter can be added behind the Stage 06 provider port with its own
-settings, request timeout and separate live verification. Stage 08 adds the
-investigation HTTP API, evaluations and container delivery. The
-[roadmap](ROADMAP.md) lists the following stages and their completion criteria.
+All planned stages are implemented. Natural next steps are a real model
+adapter behind the Stage 06 provider port (with its own settings, request
+timeout and live verification), user identities and token rotation for the API,
+more labelled incidents, and registry publication with signing and scanning.
+Each needs its own decision and checks; see the [roadmap](ROADMAP.md).

@@ -1,0 +1,128 @@
+{
+  "case": "telemetry-correlation",
+  "description": "Logs, spans and metrics of one failure agree by trace ID; one metric stopped reporting.",
+  "input": {
+    "fixture": "fixtures/stage07/incident.json",
+    "metrics_file": "fixtures/stage07/metrics.json",
+    "traces": "fixtures/stage07/traces.jsonl"
+  },
+  "expected": {
+    "data_quality": "partial",
+    "required_observations": [
+      "obs-refusal-1",
+      "obs-refusal-2",
+      "obs-refusal-3",
+      "obs-exit",
+      "training-api-traces-b7ad6b7169203331",
+      "training-api-traces-eee19b7ec3c1b174",
+      "training-api-traces-00f067aa0ba902b7"
+    ],
+    "facts": [
+      {
+        "code": "connection_refused",
+        "evidence": [
+          "obs-refusal-1"
+        ]
+      },
+      {
+        "code": "trace_error_recorded",
+        "evidence": [
+          "training-api-traces-b7ad6b7169203331"
+        ]
+      },
+      {
+        "code": "connection_refused",
+        "evidence": [
+          "obs-refusal-2"
+        ]
+      },
+      {
+        "code": "trace_error_recorded",
+        "evidence": [
+          "training-api-traces-eee19b7ec3c1b174"
+        ]
+      },
+      {
+        "code": "connection_refused",
+        "evidence": [
+          "obs-refusal-3"
+        ]
+      },
+      {
+        "code": "trace_error_recorded",
+        "evidence": [
+          "training-api-traces-00f067aa0ba902b7"
+        ]
+      },
+      {
+        "code": "metric_threshold_exceeded",
+        "evidence": [
+          "training-api-metrics-dependency_failures-01"
+        ]
+      },
+      {
+        "code": "container_exit_error",
+        "evidence": [
+          "obs-exit"
+        ]
+      },
+      {
+        "code": "metric_threshold_exceeded",
+        "evidence": [
+          "training-api-metrics-target_down-01"
+        ]
+      },
+      {
+        "code": "same_trace",
+        "evidence": [
+          "obs-refusal-1",
+          "training-api-traces-b7ad6b7169203331"
+        ]
+      },
+      {
+        "code": "same_trace",
+        "evidence": [
+          "obs-refusal-2",
+          "training-api-traces-eee19b7ec3c1b174"
+        ]
+      },
+      {
+        "code": "same_trace",
+        "evidence": [
+          "obs-refusal-3",
+          "training-api-traces-00f067aa0ba902b7"
+        ]
+      }
+    ],
+    "hypotheses": [
+      {
+        "code": "endpoint_may_be_unavailable",
+        "evidence": [
+          "obs-refusal-1"
+        ]
+      },
+      {
+        "code": "endpoint_may_be_unavailable",
+        "evidence": [
+          "obs-refusal-2"
+        ]
+      },
+      {
+        "code": "endpoint_may_be_unavailable",
+        "evidence": [
+          "obs-refusal-3"
+        ]
+      },
+      {
+        "code": "application_failure_possible",
+        "evidence": [
+          "obs-exit"
+        ]
+      }
+    ],
+    "contradictions": [],
+    "forbidden_evidence": [
+      "obs-startup"
+    ]
+  }
+}

@@ -46,6 +46,13 @@ The [telemetry](telemetry.md) instruction runs the offline example with recorded
 metrics and a trace export, and the optional Stage 07 lab with Prometheus and an
 OpenTelemetry Collector.
 
+## Use the investigation API, evaluations and the container
+
+Set token digests to open the investigation routes, as in
+[using the API](usage.md#investigation-api). Run the labelled
+[evaluations](evaluations.md) with `uv run --locked python -m app.evaluate`.
+Build and run the API image as in [container delivery](container.md).
+
 ## Start the API
 
 ```bash

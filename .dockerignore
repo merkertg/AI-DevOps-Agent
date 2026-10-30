@@ -1,0 +1,8 @@
+# Only pyproject.toml, uv.lock, README.md and app/ enter the image.
+*
+!pyproject.toml
+!uv.lock
+!README.md
+!app/
+**/__pycache__
+**/*.py[cod]

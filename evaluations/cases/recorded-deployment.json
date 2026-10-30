@@ -1,0 +1,58 @@
+{
+  "case": "recorded-deployment",
+  "description": "A recorded deployment five minutes before the failure stays a cautious hypothesis.",
+  "input": {
+    "fixture": "evaluations/fixtures/recorded_deployment.json"
+  },
+  "expected": {
+    "data_quality": "declared_complete",
+    "required_observations": [
+      "deploy-0002",
+      "obs-refusal",
+      "obs-exit"
+    ],
+    "facts": [
+      {
+        "code": "deployment_recorded",
+        "evidence": [
+          "deploy-0002"
+        ]
+      },
+      {
+        "code": "connection_refused",
+        "evidence": [
+          "obs-refusal"
+        ]
+      },
+      {
+        "code": "container_exit_error",
+        "evidence": [
+          "obs-exit"
+        ]
+      }
+    ],
+    "hypotheses": [
+      {
+        "code": "deployment_preceded_failure",
+        "evidence": [
+          "deploy-0002",
+          "obs-refusal"
+        ]
+      },
+      {
+        "code": "endpoint_may_be_unavailable",
+        "evidence": [
+          "obs-refusal"
+        ]
+      },
+      {
+        "code": "application_failure_possible",
+        "evidence": [
+          "obs-exit"
+        ]
+      }
+    ],
+    "contradictions": [],
+    "forbidden_evidence": []
+  }
+}

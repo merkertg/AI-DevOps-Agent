@@ -1,0 +1,47 @@
+{
+  "case": "failure-without-history",
+  "description": "The Stage 05 failure without deployment history: no deployment may be invented.",
+  "input": {
+    "fixture": "fixtures/stage05/after_deployment.json"
+  },
+  "expected": {
+    "data_quality": "declared_complete",
+    "required_observations": [
+      "obs-startup",
+      "obs-refusal",
+      "obs-exit"
+    ],
+    "facts": [
+      {
+        "code": "connection_refused",
+        "evidence": [
+          "obs-refusal"
+        ]
+      },
+      {
+        "code": "container_exit_error",
+        "evidence": [
+          "obs-exit"
+        ]
+      }
+    ],
+    "hypotheses": [
+      {
+        "code": "endpoint_may_be_unavailable",
+        "evidence": [
+          "obs-refusal"
+        ]
+      },
+      {
+        "code": "application_failure_possible",
+        "evidence": [
+          "obs-exit"
+        ]
+      }
+    ],
+    "contradictions": [],
+    "forbidden_evidence": [
+      "obs-startup"
+    ]
+  }
+}

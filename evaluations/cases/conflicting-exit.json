@@ -1,0 +1,42 @@
+{
+  "case": "conflicting-exit",
+  "description": "Two readers disagree about one exit; the conflict must stay unresolved.",
+  "input": {
+    "fixture": "evaluations/fixtures/conflicting_exit.json"
+  },
+  "expected": {
+    "data_quality": "partial",
+    "required_observations": [
+      "obs-note",
+      "exit-a",
+      "exit-b"
+    ],
+    "facts": [
+      {
+        "code": "container_exit_zero",
+        "evidence": [
+          "exit-a"
+        ]
+      },
+      {
+        "code": "container_exit_error",
+        "evidence": [
+          "exit-b"
+        ]
+      }
+    ],
+    "hypotheses": [],
+    "contradictions": [
+      {
+        "code": "conflicting_container_exit_codes",
+        "evidence": [
+          "exit-a",
+          "exit-b"
+        ]
+      }
+    ],
+    "forbidden_evidence": [
+      "obs-note"
+    ]
+  }
+}

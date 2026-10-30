@@ -50,3 +50,45 @@ jobs:
 
       - name: Check documentation links
         run: uv run --locked python scripts/check_docs.py
+
+      - name: Evaluate known incidents and corrupted results
+        run: uv run --locked python -m app.evaluate
+
+  container:
+    name: Build and smoke test the container
+    needs: checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build image
+        run: |
+          docker build \
+            --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            --label "org.opencontainers.image.revision=$GITHUB_SHA" \
+            --tag ai-devops-agent:ci .
+
+      - name: Check user and installed tools
+        run: |
+          test "$(docker run --rm --entrypoint id ai-devops-agent:ci -u)" = "10001"
+          docker run --rm --entrypoint python ai-devops-agent:ci -c '
+          import importlib.util
+          assert all(importlib.util.find_spec(m) is None for m in ("pytest", "ruff", "mypy"))
+          '
+
+      - name: Run the API smoke test against the container
+        run: |
+          export SMOKE_READ_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+          export SMOKE_WRITE_TOKEN="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+          read_digest="$(printf %s "$SMOKE_READ_TOKEN" | sha256sum | cut -d' ' -f1)"
+          write_digest="$(printf %s "$SMOKE_WRITE_TOKEN" | sha256sum | cut -d' ' -f1)"
+          container="$(docker run --detach -p 127.0.0.1:18004:8004 \
+            -e APP_READ_TOKEN_SHA256="$read_digest" \
+            -e APP_WRITE_TOKEN_SHA256="$write_digest" \
+            ai-devops-agent:ci)"
+          trap 'docker logs "$container" 2>&1 | tail -20; docker rm --force "$container" > /dev/null' EXIT
+          python3 scripts/api_smoke.py --base-url http://127.0.0.1:18004 --wait-seconds 60

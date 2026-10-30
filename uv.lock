@@ -7,7 +7,7 @@ exclude-newer = "2026-10-09T00:00:00Z"
 
 [[package]]
 name = "ai-devops-agent"
-version = "0.1.0"
+version = "0.8.0"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },

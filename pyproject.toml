@@ -1,6 +1,6 @@
 [project]
 name = "ai-devops-agent"
-version = "0.1.0"
+version = "0.8.0"
 description = "A staged, evidence-based learning project for incident investigation"
 readme = "README.md"
 requires-python = ">=3.12,<3.13"

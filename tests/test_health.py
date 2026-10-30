@@ -32,8 +32,14 @@ def test_openapi_describes_health_contract(client: TestClient) -> None:
     assert response.status_code == 200
     schema = response.json()
     assert schema["info"]["title"] == "ai-devops-agent"
-    assert schema["info"]["version"] == __version__ == "0.1.0"
-    assert set(schema["paths"]) == {"/health"}
+    assert schema["info"]["version"] == __version__ == "0.8.0"
+    assert set(schema["paths"]) == {
+        "/health",
+        "/investigations",
+        "/investigations/{investigation_id}",
+        "/investigations/{investigation_id}/verification",
+        "/investigations/{investigation_id}/agent",
+    }
     response_schema = schema["paths"]["/health"]["get"]["responses"]["200"]["content"][
         "application/json"
     ]["schema"]

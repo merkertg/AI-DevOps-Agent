@@ -256,12 +256,13 @@ def _prepare(value: object, limits: InputLimits) -> PreparedInput:
     )
 
 
-def load_fixture(path: Path, limits: InputLimits = DEFAULT_LIMITS) -> PreparedInput:
-    """Load bounded fictional JSON and turn parser/domain failures into safe errors."""
+def parse_fixture(data: bytes, limits: InputLimits = DEFAULT_LIMITS) -> PreparedInput:
+    """Parse bounded fixture bytes and turn parser/domain failures into safe errors."""
     try:
-        text = _read_bounded(path, limits.max_input_bytes).decode("utf-8")
+        if len(data) > limits.max_input_bytes:
+            raise FixtureError("Input exceeds the byte limit.")
         payload: object = json.loads(
-            text,
+            data.decode("utf-8"),
             object_pairs_hook=_unique_object,
             parse_constant=_reject_number,
             parse_float=_reject_number,
@@ -269,7 +270,12 @@ def load_fixture(path: Path, limits: InputLimits = DEFAULT_LIMITS) -> PreparedIn
         return _prepare(payload, limits)
     except FixtureError:
         raise
-    except (ValueError, TypeError, OverflowError, RecursionError, OSError):
+    except (ValueError, TypeError, OverflowError, RecursionError):
         raise FixtureError(
             "Fixture encoding, JSON or incident evidence is invalid."
         ) from None
+
+
+def load_fixture(path: Path, limits: InputLimits = DEFAULT_LIMITS) -> PreparedInput:
+    """Load a bounded fictional JSON file through the same strict parser."""
+    return parse_fixture(_read_bounded(path, limits.max_input_bytes), limits)

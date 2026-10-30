@@ -1,0 +1,47 @@
+{
+  "case": "connection-failure",
+  "description": "A refused connection, a failed exit and a log line that imitates an instruction.",
+  "input": {
+    "fixture": "fixtures/stage03/connection_failure.json"
+  },
+  "expected": {
+    "data_quality": "declared_complete",
+    "required_observations": [
+      "obs-refusal",
+      "obs-exit",
+      "obs-note"
+    ],
+    "facts": [
+      {
+        "code": "connection_refused",
+        "evidence": [
+          "obs-refusal"
+        ]
+      },
+      {
+        "code": "container_exit_error",
+        "evidence": [
+          "obs-exit"
+        ]
+      }
+    ],
+    "hypotheses": [
+      {
+        "code": "endpoint_may_be_unavailable",
+        "evidence": [
+          "obs-refusal"
+        ]
+      },
+      {
+        "code": "application_failure_possible",
+        "evidence": [
+          "obs-exit"
+        ]
+      }
+    ],
+    "contradictions": [],
+    "forbidden_evidence": [
+      "obs-note"
+    ]
+  }
+}

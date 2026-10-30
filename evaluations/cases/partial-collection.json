@@ -1,0 +1,31 @@
+{
+  "case": "partial-collection",
+  "description": "One refusal with declared incomplete, truncated collection and an uncovered source.",
+  "input": {
+    "fixture": "fixtures/stage03/partial_incident.json"
+  },
+  "expected": {
+    "data_quality": "partial",
+    "required_observations": [
+      "obs-refusal"
+    ],
+    "facts": [
+      {
+        "code": "connection_refused",
+        "evidence": [
+          "obs-refusal"
+        ]
+      }
+    ],
+    "hypotheses": [
+      {
+        "code": "endpoint_may_be_unavailable",
+        "evidence": [
+          "obs-refusal"
+        ]
+      }
+    ],
+    "contradictions": [],
+    "forbidden_evidence": []
+  }
+}

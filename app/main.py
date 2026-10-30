@@ -1,4 +1,4 @@
-"""Compose the Stage 01 HTTP service without accessing external infrastructure."""
+"""Compose the HTTP service: liveness and the token-scoped investigation API."""
 
 from typing import Literal
 
@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict
 
 from app import __version__
+from app.api import router as investigations_router
 from app.config import Settings, get_settings
 
 
@@ -27,7 +28,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         debug=resolved_settings.app_debug,
         description=(
             "Staged learning project for evidence-based incident investigation. "
-            "Stage 01 provides service liveness only."
+            "Investigation routes require configured bearer tokens and accept "
+            "only inline fictional fixtures."
         ),
     )
     application.state.settings = resolved_settings
@@ -37,6 +39,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         """Confirm that this HTTP application responds without probing dependencies."""
         return HealthResponse(service=resolved_settings.app_name)
 
+    application.include_router(investigations_router)
     return application
 
 

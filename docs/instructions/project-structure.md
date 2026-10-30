@@ -6,11 +6,13 @@ Where each part of the application, tests and documentation lives.
 
 ```text
 .github/workflows/
-  ci.yml                 # Lint, formatting, strict types, tests and documentation links
+  ci.yml                 # checks (lint, types, tests, docs, evaluations) and container jobs
 app/
-  __init__.py            # Application version 0.1.0
+  __init__.py            # Application version 0.8.0
   config.py              # Validated Settings and cached get_settings()
-  main.py                # HealthResponse, create_app(), liveness handler and exported app
+  main.py                # HealthResponse, create_app(), liveness and the investigation router
+  api.py                 # Token-scoped /investigations routes over inline fixtures
+  evaluate.py            # Labelled-incident metrics and the corruption self-check
   domain/                # Pure Python incident models, evidence, timeline and rules
   application/
     inputs.py            # PreparedInput: sanitized evidence and data-quality metadata
@@ -42,6 +44,9 @@ app/
 fixtures/stage03/         # Two fictional JSON examples: known signals and partial collection
 fixtures/stage05/         # Fictional failure after a recorded lab deployment
 fixtures/stage07/         # Fictional incident, recorded metrics and trace export
+evaluations/
+  cases/                 # Six hand-written labels of known fictional incidents
+  fixtures/              # Extra fictional inputs used only by the evaluations
 lab/stage04/
   compose.yaml           # Disposable lab: one labeled service, no network, no Docker socket
   training_api.py        # Fictional process: structured refusal, then exit code 3
@@ -84,8 +89,12 @@ tests/
   test_telemetry_readers.py  # Prometheus client, recorded metrics, OTLP reader
   test_telemetry_cli.py  # CLIs with recorded, fake-live and missing telemetry
   test_telemetry_lab.py  # Lab process without Docker and compose consistency
+  test_api.py            # Token scopes, idempotent saves, reads, errors and OpenAPI
+  test_api_smoke.py      # Real Uvicorn process with the smoke script
+  test_evaluate.py       # Labelled cases, every corruption detected, case parsing
 scripts/
   check_docs.py          # Local Markdown link targets; external URLs are not requested
+  api_smoke.py           # End-to-end API check against a running server or container
 docs/
   instructions/          # Quickstart, API usage, testing, CI and stage publication, this file
   guide/                 # Learning materials index and machine-readable verification
@@ -97,12 +106,15 @@ docs/
   STAGE_05.md            # SQLite records, verification and deployment history in Russian
   STAGE_06.md            # Bounded LangGraph agent, tools, limits and validation in Russian
   STAGE_07.md            # Metrics, traces, correlation gaps and the telemetry lab in Russian
+  STAGE_08.md            # HTTP API, evaluations and container delivery in Russian
   ROADMAP.md             # Planned stages and completion criteria in Russian
   CI_CD.md               # CI and stage publication guide in Russian
   APPROACH.md            # Current design, boundaries and planned architecture
   VERIFICATION.md        # Checks actually run and their limits
   DEVELOPMENT_LOG.md     # Step-by-step implementation log
 .env.example             # Non-secret configuration example
+Dockerfile               # Two-stage non-root API image pinned by digest
+.dockerignore            # Only pyproject.toml, uv.lock, README.md and app/ enter the image
 .gitignore               # Local environments, caches, .env and private evidence under var/
 .python-version          # Python 3.12 selection
 AGENTS.md                # Rules for future changes
@@ -113,6 +125,9 @@ README.md                # Short description, roadmap and documentation index
 
 The request path is `client → Uvicorn → FastAPI → health → HealthResponse → JSON`.
 Application instances receive their settings through `create_app()`.
+Investigation routes add `bearer token → require_read()/require_write() →
+parse_fixture() → build_record() → SqliteInvestigationStore`; see
+[using the API](usage.md).
 
 The separate Python domain path is `Incident + Source + Observation →
 investigate() → Investigation`. The domain uses the standard library and does
@@ -152,8 +167,7 @@ Create new layers only when they own behavior:
 | Future location | First responsibility |
 | --- | --- |
 | Model adapter behind `AgentProvider` | Real language model with explicit settings |
-| Further lab services | More controlled incidents for evaluations (Stage 08) |
-| Evaluation suite | Independent incident labels and quality thresholds |
+| More evaluation cases | Further labelled incidents, including from the live labs |
 
 These locations are design directions, not implemented directories. See the
 [roadmap](../ROADMAP.md) for their order and completion criteria.
