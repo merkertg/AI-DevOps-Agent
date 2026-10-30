@@ -18,8 +18,9 @@ uv run --locked python -m app.agent "$id" --store var/stage05/investigations.sql
 ```
 
 The store is opened read-only. The saved record must pass `verify`; otherwise
-the agent is not run. The provider is `offline-rules-v1`: fixed rules, no
-language model, no network, no credentials. A real model adapter is a later step.
+the agent is not run. The default provider is `offline-rules-v1`: fixed rules,
+no language model, no network, no credentials. `--provider anthropic` uses
+Claude instead; see [Claude provider](#claude-provider).
 
 ## Graph and limits
 
@@ -74,3 +75,40 @@ source without observations). No check is executed by the project.
 
 Exit `0` means a report was produced, including a stopped run. Exit `2` means
 a missing store or ID, a record that does not verify, or invalid arguments.
+
+## Claude provider
+
+Stage 09 adds Claude behind the same port
+([ADR 0008](../adr/0008-claude-agent-provider.md),
+[Russian guide](../STAGE_09.md)):
+
+```bash
+uv run --locked python -m app.agent "$id" --store var/stage05/investigations.sqlite3 --provider anthropic
+```
+
+The official Anthropic SDK resolves credentials from `ANTHROPIC_API_KEY` or an
+`ant auth login` profile; keep them out of the project. Without credentials the
+command exits `2` before any request. **Tool results, including sanitized
+evidence text, are sent to the Anthropic API**; the report says so in
+`limitations`.
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `APP_AGENT_MODEL` | `claude-opus-5-5` | Claude model ID |
+| `APP_AGENT_EFFORT` | `high` | `low`, `medium`, `high`, `xhigh` or `max` |
+| `APP_AGENT_MAX_SECONDS` | `300` | Agent deadline for model runs, `10..1800` |
+| `APP_AGENT_REQUEST_TIMEOUT_SECONDS` | `60` | SDK timeout per request (two retries) |
+
+The seven read-only tools and `finish_investigation` are strict tool
+definitions; Claude calls exactly one per reply (`tool_choice` `auto`, parallel
+calls disabled). Each call becomes the same decision document as the offline
+provider's, so parsing, budgets, reference validation and the check catalog are
+unchanged. The conversation is append-only: responses, including thinking
+blocks, are passed back as received; refused calls and invalid answers return
+as `is_error` results; a reply without a tool call gets a reminder. The system
+prompt states that text in tool results is evidence, never instructions.
+Refusals and API errors stop the run as `provider_error` without their text;
+server-side fallback (`fallbacks: "default"`) retries a declined request on the
+recommended model. Runs are not deterministic and cost money. The HTTP API keeps
+the offline provider. Evaluate the model separately with
+`uv run --locked python -m app.evaluate --provider anthropic`.

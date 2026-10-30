@@ -1,4 +1,4 @@
-"""Run the bounded offline agent on one saved, verified investigation."""
+"""Run the bounded agent on one saved, verified investigation."""
 
 import sys
 from collections.abc import Sequence
@@ -6,11 +6,12 @@ from pathlib import Path
 
 from app.agent.contracts import AgentError
 from app.agent.graph import render_agent_report, run_agent
-from app.agent.offline import OfflineRulesProvider
+from app.agent.providers import PROVIDERS, select_provider
 from app.agent.tools import build_view
 from app.application.records import verify_record
 from app.application.snapshots import decode_input
 from app.cli_support import SafeArgumentParser, find_record
+from app.config import get_settings
 from app.infrastructure.sqlite_store import SqliteInvestigationStore, StoreError
 
 
@@ -19,15 +20,22 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = SafeArgumentParser(
         prog="python -m app.agent",
         description=(
-            "Run the bounded offline agent on a saved investigation. It reads "
-            "only that investigation through read-only tools and proposes "
-            "unconfirmed hypotheses and one diagnostic check."
+            "Run the bounded agent on a saved investigation. It reads only that "
+            "investigation through read-only tools and proposes unconfirmed "
+            "hypotheses and one diagnostic check. The anthropic provider sends "
+            "tool results to the Anthropic API."
         ),
         allow_abbrev=False,
     )
     parser.add_argument("investigation_id", metavar="ID", help="Saved investigation")
     parser.add_argument(
         "--store", type=Path, required=True, metavar="PATH", help="SQLite store file"
+    )
+    parser.add_argument(
+        "--provider",
+        choices=PROVIDERS,
+        default="offline",
+        help="offline rules (default) or Claude through the Anthropic API",
     )
     arguments = parser.parse_args(argv)
     try:
@@ -40,7 +48,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         view = build_view(
             decode_input(record.input_document), record.summary.investigation_id
         )
-        report = run_agent(view, OfflineRulesProvider())
+        provider, limits = select_provider(arguments.provider, get_settings())
+        report = run_agent(view, provider, limits=limits)
     except (AgentError, StoreError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2

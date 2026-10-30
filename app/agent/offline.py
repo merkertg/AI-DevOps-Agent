@@ -49,6 +49,9 @@ class OfflineRulesProvider:
     """Read a fixed set of tools, then answer from structured fact codes."""
 
     name = "offline-rules-v1"
+    limitation = (
+        "The offline provider follows fixed rules; no language model was called."
+    )
 
     def decide(self, turn: AgentTurn) -> object:
         """Call the next unread tool, or finish when the plan or budget is done."""

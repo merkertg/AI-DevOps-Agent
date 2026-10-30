@@ -1,196 +1,334 @@
 {
   "checked_on": "2026-10-30",
-  "stage": "08",
-  "scope": "Token-scoped investigation HTTP API over inline fictional fixtures, an evaluation suite of six hand-labelled incidents with ten corruptions each, and a non-root API container built and smoke-tested in CI",
-  "base_commit": "1f0152976d12aae6a754ce05e3f58742bb8a12f9",
+  "stage": "09",
+  "scope": "Opt-in Claude provider behind the Stage 06 agent port through the official Anthropic SDK, with the same read-only tools, budgets and validation as the offline provider",
+  "base_commit": "0b75b15c1bc0928624bf7277cdd97e6835112fa5",
   "app_version": "0.8.0",
   "environment": {
     "platform": "macOS arm64",
     "python": "3.12.15",
     "uv": "0.12.23",
+    "anthropic_sdk": "1.12.1",
     "docker": "Docker Desktop 29.8.2 (aarch64)"
   },
-  "api": {
-    "routes": [
-      "POST /investigations",
-      "GET /investigations",
-      "GET /investigations/{id}",
-      "GET /investigations/{id}/verification",
-      "POST /investigations/{id}/agent"
-    ],
-    "closed_without_token_digests": true,
-    "token_settings": [
-      "APP_READ_TOKEN_SHA256",
-      "APP_WRITE_TOKEN_SHA256"
-    ],
-    "scopes": {
-      "write": "save and read",
-      "read": "list, read, verify, run the agent"
+  "provider": {
+    "name": "anthropic:claude-opus-5-5",
+    "opt_in": "--provider anthropic on python -m app.agent and python -m app.evaluate",
+    "http_api_provider": "offline",
+    "request": {
+      "endpoint": "client.beta.messages.create",
+      "model": "claude-opus-5-5",
+      "effort": "high",
+      "thinking": "model default (adaptive)",
+      "max_tokens": 16000,
+      "tool_choice": {
+        "type": "auto",
+        "disable_parallel_tool_use": true
+      },
+      "strict_tools": 8,
+      "fallbacks": "default",
+      "betas": [
+        "server-side-fallback-2026-07-01"
+      ]
     },
-    "max_body_bytes": 1048576,
-    "accepts_server_paths_or_urls": false,
-    "idempotent_save": "same input returns the original record with HTTP 200"
-  },
-  "evaluation": {
-    "cases": [
-      "conflicting-exit",
-      "connection-failure",
-      "failure-without-history",
-      "partial-collection",
-      "recorded-deployment",
-      "telemetry-correlation"
-    ],
-    "metrics": [
-      "reference_validity",
-      "required_observation_recall",
-      "fact_recall",
-      "unexpected_facts",
-      "hypothesis_recall",
-      "unexpected_hypotheses",
-      "contradiction_recall",
-      "unexpected_contradictions",
-      "forbidden_citations",
-      "data_quality_matches",
-      "unknown_cause_handled",
-      "agent_compliant"
-    ],
-    "mutations": [
-      "drop_expected_fact",
-      "invent_citation",
-      "drop_required_observation",
-      "add_unexpected_fact",
-      "claim_root_cause",
-      "confirm_hypothesis",
-      "propose_repair",
-      "exceed_tool_budget",
-      "use_mutating_tool",
-      "flip_data_quality"
-    ],
-    "result": {
-      "status": "passed",
-      "passed_cases": 6,
-      "failed_cases": 0,
-      "mutations_applied": 60,
-      "mutations_detected": 60,
-      "missed": []
-    }
-  },
-  "container": {
-    "status": "passed",
-    "image": "ai-devops-agent:0.8.0",
-    "image_id": "sha256:3d7e4db4a44bf92aa5597e601cdcf975f497d8c7a6325706d4efde3be75684be",
-    "size_bytes": 274744484,
-    "base_images": {
-      "python": "python:3.12.15-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704",
-      "uv": "ghcr.io/astral-sh/uv:0.12.23@sha256:61d393e44e249f2e4b526b6c7ddcecce245946826e608e11c93ad4f5bba55b21"
+    "conversation": "append-only; responses passed back unchanged; tool_result per call; is_error for refused calls and invalid answers",
+    "limits": {
+      "max_steps": 12,
+      "max_tool_calls": 8,
+      "max_seconds": 300,
+      "request_timeout_seconds": 60,
+      "sdk_max_retries": 2
     },
-    "uid": 10001,
-    "dev_tools_absent": true,
-    "app_directory": [
-      ".venv",
-      "app"
-    ],
-    "smoke": "passed",
-    "health": "healthy",
-    "volume_persistence_after_recreate": {
-      "total": 1,
-      "verify": "verified"
-    },
-    "write_without_write_digest": 401,
-    "registry_publication": "not_configured",
-    "deployment": "not_configured"
-  },
-  "clean_environment": {
-    "status": "passed",
-    "method": "Copy of git ls-files -co --exclude-standard into an empty temporary directory without .venv or var/, then uv sync --locked",
-    "checks": [
-      "ruff check",
-      "ruff format --check",
-      "mypy",
-      "pytest 810 passed",
-      "check_docs",
-      "app.evaluate passed",
-      "uvicorn + scripts/api_smoke.py passed"
-    ],
-    "smoke_investigation_id": "inv-3dec28b1f8811404869dc78b"
+    "credentials": "resolved by the SDK from ANTHROPIC_API_KEY or an ant profile; never stored by the project",
+    "data_egress": "tool results, including sanitized evidence text, are sent to the Anthropic API"
   },
   "local_checks": {
     "locked_sync": {
       "status": "passed",
-      "resolved_packages": 62,
-      "installed_packages": 59
+      "resolved_packages": 65,
+      "installed_packages": 62
     },
     "lock_check_offline": "passed",
-    "dependencies_changed": false,
-    "lock_change": "project version 0.1.0 -> 0.8.0 only",
+    "dependencies_changed": {
+      "intentional": true,
+      "added": {
+        "anthropic": "1.12.1",
+        "docstring-parser": "0.18.0",
+        "jiter": "0.17.0"
+      },
+      "unrelated_dependency_versions_changed": false
+    },
     "ruff_check": "passed",
     "ruff_format": {
       "status": "passed",
-      "formatted_files": 110,
-      "python_files": 74,
-      "markdown_files": 36
+      "formatted_files": 115
     },
     "mypy": {
       "status": "passed",
-      "source_files": 71,
+      "source_files": 74,
       "command": "uv run --locked mypy app tests scripts"
     },
     "mypy_with_labs": {
       "status": "passed",
-      "source_files": 73,
+      "source_files": 76,
       "command": "uv run --locked mypy app tests scripts lab/stage05 lab/stage07"
     },
     "pytest": {
       "status": "passed",
-      "passed": 810,
+      "passed": 827,
       "skipped": 0,
-      "previous_cases": 712,
-      "stage_08_cases": 98,
-      "api_cases": 27,
-      "uvicorn_smoke_cases": 2,
-      "evaluation_cases": 69
+      "previous_cases": 810,
+      "stage_09_cases": 17,
+      "anthropic_api_contacted": false
     },
+    "offline_evaluation": {
+      "status": "passed",
+      "passed_cases": 6,
+      "mutations_applied": 60,
+      "mutations_detected": 60
+    },
+    "offline_reports_unchanged": true,
     "purpose_docstrings": {
       "status": "passed",
-      "functions_and_classes": 112,
+      "functions_and_classes": 108,
       "new_or_modified_python_files": 10
     },
     "documentation_links": {
       "status": "passed",
-      "links": 415,
-      "markdown_files": 36
+      "links": 446,
+      "markdown_files": 38
     },
     "documentation_anchors": {
       "status": "passed",
       "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
-      "local_links": 420,
-      "markdown_files": 36,
+      "local_links": 452,
+      "markdown_files": 38,
       "broken_links": 0
     },
-    "git_diff_check": "passed"
+    "git_diff_check": "passed",
+    "container_rebuild": {
+      "status": "passed",
+      "image_id": "sha256:1482711e03b66dda3723cc00cdfc7f96ded8ba178969c97e2df5613566a2579a",
+      "size_bytes": 290902078,
+      "uid": 10001,
+      "smoke": "passed"
+    }
+  },
+  "live_model": {
+    "status": "not_run",
+    "reason": "No Anthropic credentials: ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN unset and the ant CLI is not installed. No key was requested.",
+    "credential_refusal_checked": "python -m app.evaluate --provider anthropic exited 2 with the credentials-not-configured message"
   },
   "publication": {
-    "status": "pushed",
-    "branch": "main",
-    "commit_sha": "236527b3609d86a3163df3d65d4727c26a83a3c2",
-    "remote_sha_verified": "236527b3609d86a3163df3d65d4727c26a83a3c2",
-    "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
-    "remote_base_verified": "1f0152976d12aae6a754ce05e3f58742bb8a12f9",
-    "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 08 implementation."
+    "status": "pending",
+    "remote_base_verified": "0b75b15c1bc0928624bf7277cdd97e6835112fa5",
+    "note": "Push and remote CI are recorded in a follow-up documentation commit."
   },
   "remote_ci": {
     "status": "not_verified",
-    "checked_commit": "236527b3609d86a3163df3d65d4727c26a83a3c2",
-    "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; neither the checks nor the new container job result was observed."
+    "reason": "Not yet published at the time of this record."
   },
   "limitations": [
-    "The image is not pushed to a registry, signed, scanned or deployed.",
-    "Bearer tokens are only as safe as the transport; keep the API on loopback or behind TLS.",
-    "One read and one write token: no user identity, rotation or audit trail; every reader sees every report.",
-    "Six small fictional labelled incidents; labels are written by the code's author, so passing them does not establish quality on real incidents.",
-    "No real language model is connected; the Stage 04 live lab remains not_run."
+    "With --provider anthropic, tool results including sanitized evidence text leave the machine; redaction covers documented patterns only.",
+    "Model runs cost money and are not deterministic.",
+    "The agent deadline cannot interrupt a request in flight; the SDK timeout bounds it.",
+    "Live compatibility with the Anthropic API is not verified.",
+    "The HTTP API uses only the offline provider."
   ],
   "previous_checks": [
+    {
+      "checked_on": "2026-10-30",
+      "stage": "08",
+      "scope": "Token-scoped investigation HTTP API over inline fictional fixtures, an evaluation suite of six hand-labelled incidents with ten corruptions each, and a non-root API container built and smoke-tested in CI",
+      "base_commit": "1f0152976d12aae6a754ce05e3f58742bb8a12f9",
+      "app_version": "0.8.0",
+      "environment": {
+        "platform": "macOS arm64",
+        "python": "3.12.15",
+        "uv": "0.12.23",
+        "docker": "Docker Desktop 29.8.2 (aarch64)"
+      },
+      "api": {
+        "routes": [
+          "POST /investigations",
+          "GET /investigations",
+          "GET /investigations/{id}",
+          "GET /investigations/{id}/verification",
+          "POST /investigations/{id}/agent"
+        ],
+        "closed_without_token_digests": true,
+        "token_settings": [
+          "APP_READ_TOKEN_SHA256",
+          "APP_WRITE_TOKEN_SHA256"
+        ],
+        "scopes": {
+          "write": "save and read",
+          "read": "list, read, verify, run the agent"
+        },
+        "max_body_bytes": 1048576,
+        "accepts_server_paths_or_urls": false,
+        "idempotent_save": "same input returns the original record with HTTP 200"
+      },
+      "evaluation": {
+        "cases": [
+          "conflicting-exit",
+          "connection-failure",
+          "failure-without-history",
+          "partial-collection",
+          "recorded-deployment",
+          "telemetry-correlation"
+        ],
+        "metrics": [
+          "reference_validity",
+          "required_observation_recall",
+          "fact_recall",
+          "unexpected_facts",
+          "hypothesis_recall",
+          "unexpected_hypotheses",
+          "contradiction_recall",
+          "unexpected_contradictions",
+          "forbidden_citations",
+          "data_quality_matches",
+          "unknown_cause_handled",
+          "agent_compliant"
+        ],
+        "mutations": [
+          "drop_expected_fact",
+          "invent_citation",
+          "drop_required_observation",
+          "add_unexpected_fact",
+          "claim_root_cause",
+          "confirm_hypothesis",
+          "propose_repair",
+          "exceed_tool_budget",
+          "use_mutating_tool",
+          "flip_data_quality"
+        ],
+        "result": {
+          "status": "passed",
+          "passed_cases": 6,
+          "failed_cases": 0,
+          "mutations_applied": 60,
+          "mutations_detected": 60,
+          "missed": []
+        }
+      },
+      "container": {
+        "status": "passed",
+        "image": "ai-devops-agent:0.8.0",
+        "image_id": "sha256:3d7e4db4a44bf92aa5597e601cdcf975f497d8c7a6325706d4efde3be75684be",
+        "size_bytes": 274744484,
+        "base_images": {
+          "python": "python:3.12.15-slim@sha256:a0f57064cbdcd6285fa45f51237ab0b35ea8ebaed06a1f5973e89e19dfb86704",
+          "uv": "ghcr.io/astral-sh/uv:0.12.23@sha256:61d393e44e249f2e4b526b6c7ddcecce245946826e608e11c93ad4f5bba55b21"
+        },
+        "uid": 10001,
+        "dev_tools_absent": true,
+        "app_directory": [
+          ".venv",
+          "app"
+        ],
+        "smoke": "passed",
+        "health": "healthy",
+        "volume_persistence_after_recreate": {
+          "total": 1,
+          "verify": "verified"
+        },
+        "write_without_write_digest": 401,
+        "registry_publication": "not_configured",
+        "deployment": "not_configured"
+      },
+      "clean_environment": {
+        "status": "passed",
+        "method": "Copy of git ls-files -co --exclude-standard into an empty temporary directory without .venv or var/, then uv sync --locked",
+        "checks": [
+          "ruff check",
+          "ruff format --check",
+          "mypy",
+          "pytest 810 passed",
+          "check_docs",
+          "app.evaluate passed",
+          "uvicorn + scripts/api_smoke.py passed"
+        ],
+        "smoke_investigation_id": "inv-3dec28b1f8811404869dc78b"
+      },
+      "local_checks": {
+        "locked_sync": {
+          "status": "passed",
+          "resolved_packages": 62,
+          "installed_packages": 59
+        },
+        "lock_check_offline": "passed",
+        "dependencies_changed": false,
+        "lock_change": "project version 0.1.0 -> 0.8.0 only",
+        "ruff_check": "passed",
+        "ruff_format": {
+          "status": "passed",
+          "formatted_files": 110,
+          "python_files": 74,
+          "markdown_files": 36
+        },
+        "mypy": {
+          "status": "passed",
+          "source_files": 71,
+          "command": "uv run --locked mypy app tests scripts"
+        },
+        "mypy_with_labs": {
+          "status": "passed",
+          "source_files": 73,
+          "command": "uv run --locked mypy app tests scripts lab/stage05 lab/stage07"
+        },
+        "pytest": {
+          "status": "passed",
+          "passed": 810,
+          "skipped": 0,
+          "previous_cases": 712,
+          "stage_08_cases": 98,
+          "api_cases": 27,
+          "uvicorn_smoke_cases": 2,
+          "evaluation_cases": 69
+        },
+        "purpose_docstrings": {
+          "status": "passed",
+          "functions_and_classes": 112,
+          "new_or_modified_python_files": 10
+        },
+        "documentation_links": {
+          "status": "passed",
+          "links": 415,
+          "markdown_files": 36
+        },
+        "documentation_anchors": {
+          "status": "passed",
+          "command": "uv run --locked python ../amoCRM/scripts/check_docs.py --root .",
+          "local_links": 420,
+          "markdown_files": 36,
+          "broken_links": 0
+        },
+        "git_diff_check": "passed"
+      },
+      "publication": {
+        "status": "pushed",
+        "branch": "main",
+        "commit_sha": "236527b3609d86a3163df3d65d4727c26a83a3c2",
+        "remote_sha_verified": "236527b3609d86a3163df3d65d4727c26a83a3c2",
+        "method": "git fetch and git ls-remote before push; git push origin main; git ls-remote origin refs/heads/main confirmed SHA",
+        "remote_base_verified": "1f0152976d12aae6a754ce05e3f58742bb8a12f9",
+        "record_added_in": "A follow-up documentation commit; commit_sha identifies the Stage 08 implementation."
+      },
+      "remote_ci": {
+        "status": "not_verified",
+        "checked_commit": "236527b3609d86a3163df3d65d4727c26a83a3c2",
+        "reason": "gh CLI is not installed and the unauthenticated GitHub API returned HTTP 404 for this commit's check runs; neither the checks nor the new container job result was observed."
+      },
+      "limitations": [
+        "The image is not pushed to a registry, signed, scanned or deployed.",
+        "Bearer tokens are only as safe as the transport; keep the API on loopback or behind TLS.",
+        "One read and one write token: no user identity, rotation or audit trail; every reader sees every report.",
+        "Six small fictional labelled incidents; labels are written by the code's author, so passing them does not establish quality on real incidents.",
+        "No real language model is connected; the Stage 04 live lab remains not_run."
+      ]
+    },
     {
       "checked_on": "2026-10-29",
       "stage": "07",

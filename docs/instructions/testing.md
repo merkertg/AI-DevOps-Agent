@@ -116,6 +116,18 @@ uv run --locked python -m app.evaluate
 Building and smoke-testing the image needs Docker; see
 [container delivery](container.md).
 
+Stage 09 tests drive the Claude provider with a fake Messages API: request
+shape, the append-only conversation, error results, refusals, network errors,
+credential checks and settings. No request reaches Anthropic.
+
+```bash
+uv run --locked pytest tests/test_claude_provider.py
+```
+
+A live model run (`python -m app.evaluate --provider anthropic`) needs
+credentials, costs money and is recorded separately in
+[VERIFICATION.md](../VERIFICATION.md).
+
 Ruff checks common errors and imports; its format check does not modify files.
 Strict mypy checks annotated Python types. Pytest verifies behavior. The local
 documentation checker validates repository file targets; it does not establish

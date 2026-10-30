@@ -14,13 +14,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-from app.agent.contracts import DEFAULT_AGENT_LIMITS
+from app.agent.contracts import DEFAULT_AGENT_LIMITS, AgentError
 from app.agent.graph import render_agent_report, run_agent
-from app.agent.offline import OfflineRulesProvider
+from app.agent.providers import PROVIDERS, ProviderName, select_provider
 from app.agent.tools import build_view
 from app.agent.validation import CHECKS
 from app.application.reporting import render_report
 from app.cli_support import SafeArgumentParser, json_document, with_telemetry
+from app.config import get_settings
 from app.infrastructure.fixtures import FixtureError, load_fixture
 from app.infrastructure.telemetry import TelemetryError
 
@@ -153,14 +154,17 @@ def load_cases(directory: Path = DEFAULT_CASES, root: Path = ROOT) -> tuple[Case
     return tuple(load_case(path, root) for path in paths)
 
 
-def produce(case: Case) -> tuple[Document, Document]:
-    """Run intake, telemetry, reporting and the offline agent for one case."""
+def produce(
+    case: Case, provider_name: ProviderName = "offline"
+) -> tuple[Document, Document]:
+    """Run intake, telemetry, reporting and a fresh agent run for one case."""
     prepared = with_telemetry(
         load_fixture(case.fixture), None, case.metrics_file, case.traces
     )
     report = json.loads(render_report(prepared))
+    provider, limits = select_provider(provider_name, get_settings())
     agent = json.loads(
-        render_agent_report(run_agent(build_view(prepared), OfflineRulesProvider()))
+        render_agent_report(run_agent(build_view(prepared), provider, limits=limits))
     )
     return report, agent
 
@@ -394,13 +398,18 @@ MUTATIONS: dict[str, Mutation] = {
 }
 
 
-def evaluate(cases: Sequence[Case], *, mutations: bool = True) -> dict[str, object]:
+def evaluate(
+    cases: Sequence[Case],
+    *,
+    mutations: bool = True,
+    provider: ProviderName = "offline",
+) -> dict[str, object]:
     """Score every case and check that every corruption of it is detected."""
     results: list[dict[str, object]] = []
     missed: list[str] = []
     applied = 0
     for case in cases:
-        report, agent = produce(case)
+        report, agent = produce(case, provider)
         results.append(score(case, report, agent))
         if not mutations:
             continue
@@ -414,6 +423,7 @@ def evaluate(cases: Sequence[Case], *, mutations: bool = True) -> dict[str, obje
     ok = passed == len(results) and not missed
     summary: dict[str, object] = {
         "status": "passed" if ok else "failed",
+        "provider": provider,
         "cases": results,
         "passed_cases": passed,
         "failed_cases": len(results) - passed,
@@ -447,12 +457,20 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument(
         "--no-mutations", action="store_true", help="Skip the corruption self-check"
     )
+    parser.add_argument(
+        "--provider",
+        choices=PROVIDERS,
+        default="offline",
+        help="Agent provider; anthropic calls the Anthropic API for every case",
+    )
     arguments = parser.parse_args(argv)
     try:
         summary = evaluate(
-            load_cases(arguments.cases), mutations=not arguments.no_mutations
+            load_cases(arguments.cases),
+            mutations=not arguments.no_mutations,
+            provider=arguments.provider,
         )
-    except (EvaluationError, FixtureError, TelemetryError) as error:
+    except (AgentError, EvaluationError, FixtureError, TelemetryError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     sys.stdout.write(json_document(summary))

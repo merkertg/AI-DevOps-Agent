@@ -36,6 +36,8 @@ app/
     validation.py        # Fact-reference checks, diagnostic check catalog, missing data
     graph.py             # LangGraph decide → run_tool → finish loop and agent report
     offline.py           # Deterministic offline provider on fixed rules
+    claude_provider.py   # Opt-in Claude provider through the official Anthropic SDK
+    providers.py         # Explicit provider choice and its limits
     __main__.py          # python -m app.agent ID --store PATH
   cli.py                 # Offline fixture investigation; stdout JSON, safe stderr
   collect.py             # Stage 04 lab collector CLI; stdout JSON, safe stderr
@@ -92,6 +94,7 @@ tests/
   test_api.py            # Token scopes, idempotent saves, reads, errors and OpenAPI
   test_api_smoke.py      # Real Uvicorn process with the smoke script
   test_evaluate.py       # Labelled cases, every corruption detected, case parsing
+  test_claude_provider.py # Fake Messages API: request shape, replies, errors, credentials
 scripts/
   check_docs.py          # Local Markdown link targets; external URLs are not requested
   api_smoke.py           # End-to-end API check against a running server or container
@@ -107,6 +110,7 @@ docs/
   STAGE_06.md            # Bounded LangGraph agent, tools, limits and validation in Russian
   STAGE_07.md            # Metrics, traces, correlation gaps and the telemetry lab in Russian
   STAGE_08.md            # HTTP API, evaluations and container delivery in Russian
+  STAGE_09.md            # Claude behind the agent port in Russian
   ROADMAP.md             # Planned stages and completion criteria in Russian
   CI_CD.md               # CI and stage publication guide in Russian
   APPROACH.md            # Current design, boundaries and planned architecture
@@ -166,7 +170,7 @@ Create new layers only when they own behavior:
 
 | Future location | First responsibility |
 | --- | --- |
-| Model adapter behind `AgentProvider` | Real language model with explicit settings |
+| Further model providers | Other models behind the same `AgentProvider` port |
 | More evaluation cases | Further labelled incidents, including from the live labs |
 
 These locations are design directions, not implemented directories. See the

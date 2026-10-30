@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import StringConstraints
+from pydantic import Field, StringConstraints
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # A token is configured by its SHA-256 digest, so the secret is never stored.
@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     app_read_token_sha256: TokenDigest | None = None
     app_write_token_sha256: TokenDigest | None = None
     app_store_path: Path = Path("var/investigations.sqlite3")
+    # The Claude agent provider is used only when a command asks for it; the
+    # Anthropic SDK reads its own credentials from the environment.
+    app_agent_model: Annotated[
+        str, StringConstraints(strip_whitespace=True, pattern=r"^claude-[a-z0-9-]+$")
+    ] = "claude-opus-5-5"
+    app_agent_effort: Literal["low", "medium", "high", "xhigh", "max"] = "high"
+    app_agent_max_seconds: Annotated[int, Field(ge=10, le=1_800)] = 300
+    app_agent_request_timeout_seconds: Annotated[float, Field(gt=0, le=600)] = 60.0
 
     @property
     def investigation_api_enabled(self) -> bool:

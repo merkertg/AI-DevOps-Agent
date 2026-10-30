@@ -15,7 +15,7 @@ The first useful investigation will use local fictional fixtures. A complete
 offline path comes before live Docker access or a model provider. This gives
 each new adapter a stable contract and makes regressions reproducible.
 
-## Current implementation: Stages 01–08
+## Current implementation: Stages 01–09
 
 Stage 01 contains a small FastAPI application:
 
@@ -177,6 +177,16 @@ built and smoke-tested in CI; it is not pushed or deployed. See
 [using the API](instructions/usage.md), [evaluations](instructions/evaluations.md)
 and [container delivery](instructions/container.md).
 
+Stage 09 connects Claude to the Stage 06 provider port. `--provider anthropic`
+sends strict definitions of the same read-only tools to `claude-opus-5-5`
+through the official SDK and turns each tool call into the same decision
+document, so budgets, parsing, reference validation and the check catalog are
+unchanged. The conversation is append-only; refusals and API errors stop the
+run without their text; a run without credentials does not start. Tool results
+leave the machine, which the report states. See
+[ADR 0008](adr/0008-claude-agent-provider.md) and the
+[bounded agent](instructions/bounded-agent.md#claude-provider).
+
 ## Stack and responsibility
 
 | Component | Responsibility | Status |
@@ -194,7 +204,7 @@ and [container delivery](instructions/container.md).
 | GitPython | Read-only deployment history of the fictional allowlisted lab | Implemented, Stage 05 |
 | SQLite (standard library) | Append-only local records, canonical input and reproduction checks | Implemented, Stage 05 |
 | LangGraph | Bounded investigation orchestration with an offline provider | Implemented, Stage 06 |
-| Language model adapter | Real provider behind the agent port | Planned, separate step |
+| Anthropic Python SDK (`anthropic`) | Opt-in Claude provider behind the agent port | Implemented, Stage 09 |
 | Prometheus HTTP API (standard library), OTLP JSON export | Allowlisted metric queries, bounded trace reading and trace-ID correlation | Implemented, Stage 07 |
 
 Runtime dependencies for later stages are introduced with the corresponding
@@ -272,8 +282,7 @@ and the detailed [CI/CD guide](CI_CD.md).
 
 ## Next steps
 
-All planned stages are implemented. Natural next steps are a real model
-adapter behind the Stage 06 provider port (with its own settings, request
-timeout and live verification), user identities and token rotation for the API,
-more labelled incidents, and registry publication with signing and scanning.
+All planned stages are implemented. Natural next steps are a live evaluation
+of the Claude provider, user identities and token rotation for the API, more
+labelled incidents, and registry publication with signing and scanning.
 Each needs its own decision and checks; see the [roadmap](ROADMAP.md).

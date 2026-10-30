@@ -6,7 +6,7 @@ deployment history, builds an evidence timeline and proposes possible causes
 with references to the observations behind them. An engineer reviews the report
 and chooses the next action. Incident data used by the project is fictional.
 
-The current implementation covers **all eight stages**: a FastAPI service with
+The current implementation covers **Stages 01–09**: a FastAPI service with
 `GET /health` and validated settings, plus a pure Python incident model,
 reproducible evidence timeline and deterministic findings on fictional data.
 An offline CLI accepts bounded fictional JSON fixtures, removes documented
@@ -28,11 +28,13 @@ A token-scoped HTTP API saves inline fixtures, reads stored reports, verifies
 them and runs the agent; evaluations score six labelled incidents and must
 detect deliberately corrupted results; a container image is built and
 smoke-tested in CI.
+An opt-in Claude provider (official Anthropic SDK, `--provider anthropic`) runs
+the same bounded agent with the same tools, limits and validation.
 Facts, causal hypotheses and conflicting observations remain separate. Tests,
 Ruff, strict mypy, locked dependencies and a GitHub Actions configuration are
 included. Tests and the offline CLI need no model, Docker daemon, external database service or
 credentials; the optional lab needs a local Docker Engine.
-A real model adapter, registry publication and deployment are **not implemented**. The agent
+Registry publication and deployment are **not implemented**. The agent
 has only bounded read-only tools; it cannot execute shell commands, restart
 containers, deploy or apply fixes. Actual checks, publication state and limitations are recorded in
 [verification](docs/VERIFICATION.md).
@@ -53,6 +55,7 @@ interactive API documentation is at <http://127.0.0.1:8004/docs>.
 | 06 | Bounded LangGraph investigation | Implemented with an offline provider; checks and publication in [verification](docs/VERIFICATION.md) |
 | 07 | Prometheus and OpenTelemetry correlation | Implemented; offline and live lab checks in [verification](docs/VERIFICATION.md) |
 | 08 | Investigation API, evaluations and container delivery | Implemented; clean-environment, evaluation and container checks in [verification](docs/VERIFICATION.md) |
+| 09 | Real language model behind the agent port | Implemented; live model call not run, status in [verification](docs/VERIFICATION.md) |
 
 Completion criteria for every stage are in the [roadmap](docs/ROADMAP.md).
 
@@ -66,7 +69,7 @@ Instructions ([docs/instructions/](docs/instructions/)):
 - [Offline investigation](docs/instructions/offline-investigation.md): fixture schema, CLI, limits, redaction and reports
 - [Docker lab and collector](docs/instructions/docker-lab.md): lab scenario, collector options, allowlist, limits and gaps
 - [Saved investigations and deployment history](docs/instructions/investigation-history.md): local lab, SQLite, idempotent saves, show and verify
-- [Bounded investigation agent](docs/instructions/bounded-agent.md): graph, read-only tools, limits, validation and report
+- [Bounded investigation agent](docs/instructions/bounded-agent.md): graph, read-only tools, limits, validation, report and the Claude provider
 - [Telemetry](docs/instructions/telemetry.md): allowlisted metrics, trace export, correlation gaps and the Stage 07 lab
 - [Evaluations](docs/instructions/evaluations.md): labelled incidents, metrics and the corruption check
 - [Container delivery](docs/instructions/container.md): image contents, run, smoke test and delivery limits
@@ -84,6 +87,7 @@ Learning guides in Russian:
 - [Stage 06: Bounded LangGraph agent](docs/STAGE_06.md)
 - [Stage 07: Metrics, traces and correlation](docs/STAGE_07.md)
 - [Stage 08: HTTP API, evaluations and container](docs/STAGE_08.md)
+- [Stage 09: Claude behind the agent port](docs/STAGE_09.md)
 - [Roadmap and completion criteria](docs/ROADMAP.md)
 - [CI/CD guide](docs/CI_CD.md)
 - [Learning materials index](docs/guide/README.md) and
@@ -100,4 +104,5 @@ Design and history:
 - [Architecture decision 0005: Bounded LangGraph agent](docs/adr/0005-bounded-langgraph-agent.md)
 - [Architecture decision 0006: Allowlisted telemetry](docs/adr/0006-allowlisted-telemetry.md)
 - [Architecture decision 0007: Token-scoped API and container](docs/adr/0007-token-scoped-api-and-container.md)
+- [Architecture decision 0008: Claude as an opt-in agent provider](docs/adr/0008-claude-agent-provider.md)
 - [Development log](docs/DEVELOPMENT_LOG.md)

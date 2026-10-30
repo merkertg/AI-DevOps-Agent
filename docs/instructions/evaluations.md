@@ -13,6 +13,9 @@ uv run --locked python -m app.evaluate
 Exit `0` means every case passed and every corruption was detected; `1` means
 a case failed or a corruption went unnoticed; `2` means a case file is invalid.
 `--no-mutations` skips the corruption check; `--cases DIR` uses other cases.
+`--provider anthropic` runs the agent part with Claude instead of the offline
+provider; it calls the Anthropic API once per agent step for every case, costs
+money and needs credentials (see the [Claude provider](bounded-agent.md#claude-provider)).
 
 ## Cases
 

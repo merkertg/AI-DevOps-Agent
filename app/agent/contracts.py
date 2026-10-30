@@ -84,6 +84,11 @@ class AgentProvider(Protocol):
         """Identify the provider in reports."""
         ...
 
+    @property
+    def limitation(self) -> str:
+        """State how decisions were made and where evidence was sent."""
+        ...
+
     def decide(self, turn: AgentTurn) -> object:
         """Return one raw decision: a tool call or a final answer."""
         ...

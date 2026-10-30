@@ -40,7 +40,6 @@ _LIMITATIONS = (
     "restart containers, deploy, roll back or change files.",
     "Reference validation checks that cited facts and observations exist, not "
     "that the statement follows from them.",
-    "The offline provider follows fixed rules; no language model was called.",
 )
 
 
@@ -215,7 +214,7 @@ def run_agent(
             }
             for exchange in final["exchanges"]
         ],
-        "limitations": list(_LIMITATIONS),
+        "limitations": [*_LIMITATIONS, provider.limitation],
     }
 
 

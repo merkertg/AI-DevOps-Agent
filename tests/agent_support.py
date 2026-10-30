@@ -67,6 +67,7 @@ class ScriptedProvider:
     """Return prepared decisions in order and record every turn it received."""
 
     name = "scripted-test"
+    limitation = "A scripted test provider returned fixed decisions."
 
     def __init__(self, *decisions: Decision) -> None:
         """Remember the decisions; the last one repeats when they run out."""
